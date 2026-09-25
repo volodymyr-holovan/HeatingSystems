@@ -1,9 +1,19 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeatingSystems", "HeatingSystems.csproj", "{47C1657A-2B07-486D-AFCC-39D0ABE42A18}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8A3F1C2E-1D6B-4C51-9E1B-0F6A2D4B7C11}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4E2B9D7A-6C3F-4A18-8B5E-2D9C1F0A3E22}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeatingSystems.Core", "src\HeatingSystems.Core\HeatingSystems.Core.csproj", "{47C1657A-2B07-486D-AFCC-39D0ABE42A18}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeatingSystems.Data", "src\HeatingSystems.Data\HeatingSystems.Data.csproj", "{B3D5E1F2-7A4C-4E8B-9C6D-1E2F3A4B5C61}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeatingSystems.App", "src\HeatingSystems.App\HeatingSystems.App.csproj", "{C4E6F2A3-8B5D-4F9C-AD7E-2F3A4B5C6D72}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeatingSystems.Tests", "tests\HeatingSystems.Tests\HeatingSystems.Tests.csproj", "{D5F7A3B4-9C6E-4A0D-BE8F-3A4B5C6D7E83}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +25,27 @@ Global
 		{47C1657A-2B07-486D-AFCC-39D0ABE42A18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47C1657A-2B07-486D-AFCC-39D0ABE42A18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47C1657A-2B07-486D-AFCC-39D0ABE42A18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3D5E1F2-7A4C-4E8B-9C6D-1E2F3A4B5C61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3D5E1F2-7A4C-4E8B-9C6D-1E2F3A4B5C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3D5E1F2-7A4C-4E8B-9C6D-1E2F3A4B5C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3D5E1F2-7A4C-4E8B-9C6D-1E2F3A4B5C61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4E6F2A3-8B5D-4F9C-AD7E-2F3A4B5C6D72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4E6F2A3-8B5D-4F9C-AD7E-2F3A4B5C6D72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4E6F2A3-8B5D-4F9C-AD7E-2F3A4B5C6D72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4E6F2A3-8B5D-4F9C-AD7E-2F3A4B5C6D72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5F7A3B4-9C6E-4A0D-BE8F-3A4B5C6D7E83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5F7A3B4-9C6E-4A0D-BE8F-3A4B5C6D7E83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5F7A3B4-9C6E-4A0D-BE8F-3A4B5C6D7E83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5F7A3B4-9C6E-4A0D-BE8F-3A4B5C6D7E83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{47C1657A-2B07-486D-AFCC-39D0ABE42A18} = {8A3F1C2E-1D6B-4C51-9E1B-0F6A2D4B7C11}
+		{B3D5E1F2-7A4C-4E8B-9C6D-1E2F3A4B5C61} = {8A3F1C2E-1D6B-4C51-9E1B-0F6A2D4B7C11}
+		{C4E6F2A3-8B5D-4F9C-AD7E-2F3A4B5C6D72} = {8A3F1C2E-1D6B-4C51-9E1B-0F6A2D4B7C11}
+		{D5F7A3B4-9C6E-4A0D-BE8F-3A4B5C6D7E83} = {4E2B9D7A-6C3F-4A18-8B5E-2D9C1F0A3E22}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FA2E0C99-49F7-49FB-9AA3-268DEAE6492C}

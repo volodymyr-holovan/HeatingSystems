@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <Authors>Volodymyr Holovan</Authors>
+    <Product>HeatingSystems</Product>
+    <Copyright>© 2025–2026 Volodymyr Holovan</Copyright>
+    <Version>2.0.0</Version>
+    <!-- Allows building the WPF project on non-Windows CI agents (reference packs only). -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+</Project>
