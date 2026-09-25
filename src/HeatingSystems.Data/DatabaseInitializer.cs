@@ -108,6 +108,12 @@ public static class DatabaseInitializer
                 command.ExecuteNonQuery();
             }
 
+            if (TableExists(command, "old", "settings"))
+            {
+                command.CommandText = "INSERT OR REPLACE INTO settings (key, value) SELECT key, value FROM old.settings";
+                command.ExecuteNonQuery();
+            }
+
             if (TableExists(command, "old", "energy_carriers"))
             {
                 // Keep tariffs edited by the user (newer than the shipped ones).

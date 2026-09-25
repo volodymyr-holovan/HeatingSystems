@@ -1,3 +1,5 @@
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.Core.Models;
 
 /// <summary>A homogeneous layer of a construction.</summary>
@@ -135,24 +137,24 @@ public sealed class BuildingInput
 
     public IEnumerable<string> Validate()
     {
-        if (HeatedFloorArea <= 0) yield return "Опалювана площа має бути більшою за нуль.";
-        if (HeatedVolume <= 0) yield return "Опалюваний об'єм має бути більшим за нуль.";
+        if (HeatedFloorArea <= 0) yield return Localizer.T("validation.floorArea");
+        if (HeatedVolume <= 0) yield return Localizer.T("validation.volume");
         if (HeatedVolume > 0 && HeatedFloorArea > 0 && HeatedVolume / HeatedFloorArea is < 2.0 or > 10.0)
-            yield return "Середня висота приміщень (об'єм / площа) виходить за межі 2–10 м.";
+            yield return Localizer.T("validation.roomHeight");
         if (ExternalWallAreaGross < 0 || WindowArea < 0 || DoorArea < 0 || RoofArea < 0 || FloorArea < 0)
-            yield return "Площі не можуть бути від'ємними.";
+            yield return Localizer.T("validation.negativeArea");
         if (WindowArea + DoorArea > ExternalWallAreaGross)
-            yield return "Площа вікон і дверей перевищує загальну площу зовнішніх стін.";
-        if (WindowArea > 0 && Window is null) yield return "Не вибрано тип вікон.";
+            yield return Localizer.T("validation.openingsExceedWall");
+        if (WindowArea > 0 && Window is null) yield return Localizer.T("validation.windowType");
         if (IndoorTemperature <= Climate.DesignTemperature)
-            yield return "Внутрішня температура має бути вищою за розрахункову зовнішню.";
-        if (IndoorTemperature is < 10 or > 30) yield return "Внутрішня температура має бути в межах 10–30 °C.";
+            yield return Localizer.T("validation.indoorAboveDesign");
+        if (IndoorTemperature is < 10 or > 30) yield return Localizer.T("validation.indoorRange");
         if (FloorType == FloorType.SlabOnGround && FloorArea > 0 && FloorPerimeter <= 0)
-            yield return "Для підлоги по ґрунту потрібно вказати периметр.";
-        if (HeatRecoveryEfficiency is < 0 or > 0.95) yield return "ККД рекуперації має бути в межах 0–0,95.";
-        if (AirTightnessN50 < 0 || MinimumAirChangeRate < 0) yield return "Кратність повітрообміну не може бути від'ємною.";
+            yield return Localizer.T("validation.perimeter");
+        if (HeatRecoveryEfficiency is < 0 or > 0.95) yield return Localizer.T("validation.heatRecovery");
+        if (AirTightnessN50 < 0 || MinimumAirChangeRate < 0) yield return Localizer.T("validation.airChange");
         if (IncludeHotWater && HotWaterTemperature <= ColdWaterTemperature)
-            yield return "Температура гарячої води має бути вищою за температуру холодної.";
+            yield return Localizer.T("validation.hotWater");
     }
 
     /// <summary>Design flow temperature of the heat emitters, °C.</summary>

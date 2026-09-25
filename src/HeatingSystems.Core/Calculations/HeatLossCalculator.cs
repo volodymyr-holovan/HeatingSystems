@@ -32,21 +32,21 @@ public static class HeatLossCalculator
         var tb = b.ThermalBridgeSurcharge;
         var items = new List<HeatLossItem>();
 
-        void AddTransmission(string name, double area, double u, double factor)
+        void AddTransmission(string nameKey, double area, double u, double factor)
         {
             if (area <= 0) return;
             var uc = u + tb;
             var h = area * uc * factor;
-            items.Add(new HeatLossItem(name, LossCategory.Transmission, area, uc, factor, h, h * dT));
+            items.Add(new HeatLossItem(nameKey, LossCategory.Transmission, area, uc, factor, h, h * dT));
         }
 
-        AddTransmission("Зовнішні стіни", b.NetWallArea, ThermalTransmittance.UValue(b.Wall, HeatFlowDirection.Horizontal), 1.0);
-        if (b.Window is not null) AddTransmission("Вікна", b.WindowArea, b.Window.UValue, 1.0);
-        AddTransmission("Зовнішні двері", b.DoorArea, b.DoorUValue, 1.0);
+        AddTransmission("loss.walls", b.NetWallArea, ThermalTransmittance.UValue(b.Wall, HeatFlowDirection.Horizontal), 1.0);
+        if (b.Window is not null) AddTransmission("loss.windows", b.WindowArea, b.Window.UValue, 1.0);
+        AddTransmission("loss.doors", b.DoorArea, b.DoorUValue, 1.0);
 
         var atticRoof = b.RoofType == RoofType.UnheatedAttic;
         AddTransmission(
-            atticRoof ? "Перекриття під холодним горищем" : "Покрівля",
+            atticRoof ? "loss.atticFloor" : "loss.roof",
             b.RoofArea,
             ThermalTransmittance.UValue(b.Roof, HeatFlowDirection.Upwards, adjoinsUnheatedSpace: atticRoof),
             atticRoof ? AtticTemperatureFactor : 1.0);
@@ -63,17 +63,17 @@ public static class HeatLossCalculator
                 // EN 12831 D.4.3: Φ = f_g1·f_g2·A·U_equiv·G_w·(θ_int − θ_e), f_g2 = (θ_int − θ_m,e)/(θ_int − θ_e), G_w = 1.
                 var fg2 = (b.IndoorTemperature - b.Climate.AnnualMeanTemperature) / dT;
                 var factor = GroundAnnualVariationFactor * fg2;
-                items.Add(new HeatLossItem("Підлога по ґрунту", LossCategory.Ground, b.FloorArea, u, factor,
+                items.Add(new HeatLossItem("loss.slab", LossCategory.Ground, b.FloorArea, u, factor,
                     hGround * factor, hGround * factor * dT));
                 break;
             }
             case FloorType.AboveUnheatedBasement:
-                AddTransmission("Перекриття над неопалюваним підвалом", b.FloorArea,
+                AddTransmission("loss.basementFloor", b.FloorArea,
                     ThermalTransmittance.UValue(b.Floor, HeatFlowDirection.Downwards, adjoinsUnheatedSpace: true),
                     BasementTemperatureFactor);
                 break;
             case FloorType.AboveOutdoorAir:
-                AddTransmission("Підлога над зовнішнім повітрям", b.FloorArea,
+                AddTransmission("loss.exposedFloor", b.FloorArea,
                     ThermalTransmittance.UValue(b.Floor, HeatFlowDirection.Downwards), 1.0);
                 break;
         }
@@ -81,7 +81,7 @@ public static class HeatLossCalculator
         var airFlow = EffectiveAirFlow(b);
         var hV = AirHeatCapacity * airFlow;
         items.Add(new HeatLossItem(
-            b.MechanicalVentilation ? "Вентиляція (з рекуперацією) та інфільтрація" : "Вентиляція та інфільтрація",
+            b.MechanicalVentilation ? "loss.ventilationRecovery" : "loss.ventilation",
             LossCategory.Ventilation, 0, 0, 1.0, hV, hV * dT));
 
         return new HeatLossResult

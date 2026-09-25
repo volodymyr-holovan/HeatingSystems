@@ -59,7 +59,7 @@ jobs:
           }
           if ($p.HasExited) { throw "Application exited with code $($p.ExitCode)" }
           Stop-Process -Id $p.Id -Force
-          # The main window title is "Системи опалення — <project>"; an error message box has no dash.
+          # The main window title is "Heating Systems — <project>"; an error message box has no dash.
           if ($title -notlike '*—*') { throw "Main window did not appear (window title: '$title')" }
           if (-not (Test-Path "$env:LOCALAPPDATA/HeatingSystems/heating.db")) { throw "User database was not created" }
           Write-Host "Started successfully, window title: $title"

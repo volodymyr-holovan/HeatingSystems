@@ -1,14 +1,15 @@
 <UserControl x:Class="HeatingSystems.App.Views.ProjectsView"
+             xmlns:l="clr-namespace:HeatingSystems.App.Localization"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <DockPanel Margin="24,18,24,24">
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Content="Видалити" Command="{Binding DeleteCommand}" />
-                <Button Style="{StaticResource PrimaryButton}" Content="Відкрити" Command="{Binding OpenCommand}" />
+                <Button Content="{l:Tr projects.delete}" Command="{Binding DeleteCommand}" />
+                <Button Style="{StaticResource PrimaryButton}" Content="{l:Tr projects.open}" Command="{Binding OpenCommand}" />
             </StackPanel>
             <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" FontSize="13"
-                       Text="Проєкти зберігаються в локальній базі даних SQLite. Подвійне клацання відкриває проєкт і перераховує його." />
+                       Text="{l:Tr projects.note}" />
         </DockPanel>
         <Grid>
             <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}">
@@ -16,15 +17,15 @@
                     <MouseBinding Gesture="LeftDoubleClick" Command="{Binding OpenCommand}" />
                 </DataGrid.InputBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Назва" Binding="{Binding Name}" Width="2*" />
-                    <DataGridTextColumn Header="Місто" Binding="{Binding City}" Width="*" />
-                    <DataGridTextColumn Header="Навантаження, Вт" Binding="{Binding DesignHeatLoad, StringFormat={}{0:N0}}" Width="130" ElementStyle="{StaticResource NumericCell}" />
-                    <DataGridTextColumn Header="Потреба, кВт·год/рік" Binding="{Binding AnnualDemand, StringFormat={}{0:N0}}" Width="150" ElementStyle="{StaticResource NumericCell}" />
-                    <DataGridTextColumn Header="Збережено" Binding="{Binding SavedAt, StringFormat={}{0:dd.MM.yyyy HH:mm}}" Width="130" />
+                    <DataGridTextColumn Header="{l:Tr projects.name}" Binding="{Binding Name}" Width="2*" />
+                    <DataGridTextColumn Header="{l:Tr common.city}" Binding="{Binding City}" Width="*" />
+                    <DataGridTextColumn Header="{l:Tr projects.load}" Binding="{Binding DesignHeatLoad, StringFormat={}{0:N0}}" Width="130" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="{l:Tr projects.demand}" Binding="{Binding AnnualDemand, StringFormat={}{0:N0}}" Width="150" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="{l:Tr projects.savedAt}" Binding="{Binding SavedAt, StringFormat={}{0:dd.MM.yyyy HH:mm}}" Width="130" />
                 </DataGrid.Columns>
             </DataGrid>
             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" FontSize="15"
-                       Text="Збережених проєктів ще немає. Натисніть «Зберегти» у верхній панелі."
+                       Text="{l:Tr projects.empty}"
                        Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
     </DockPanel>

@@ -6,7 +6,9 @@ using System.Windows.Threading;
 using HeatingSystems.App.Services;
 using HeatingSystems.App.ViewModels;
 using HeatingSystems.App.Views;
+using System.Windows.Markup;
 using HeatingSystems.Core.Calculations;
+using HeatingSystems.Core.Localization;
 using HeatingSystems.Core.Projects;
 using HeatingSystems.Data;
 using Microsoft.Data.Sqlite;
@@ -79,10 +81,20 @@ public class UiSmokeTests
                 var dbPath = DatabaseInitializer.EnsureUserDatabase(bundled, Path.Combine(directory, "ui.db"));
                 var factory = new SqliteConnectionFactory(dbPath);
                 var catalog = new SqliteCatalogRepository(factory);
+                var settings = new SqliteSettingsRepository(factory);
                 var dialogs = new FakeDialogs();
-                var vm = new MainViewModel(catalog, new SqliteProjectRepository(factory), dialogs);
+                Localizer.SetLanguage(AppLanguage.English);
 
-                var window = new MainWindow { DataContext = vm, ShowActivated = false, WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000 };
+                MainWindow? window = null;
+                // Mirrors App: the window formatting language is switched before the pages refresh.
+                EventHandler onLanguage = (_, _) =>
+                {
+                    if (window is not null) window.Language = XmlLanguage.GetLanguage(Localizer.Culture.IetfLanguageTag);
+                };
+                Localizer.LanguageChanged += onLanguage;
+                var vm = new MainViewModel(catalog, new SqliteProjectRepository(factory), settings, dialogs);
+
+                window = new MainWindow { DataContext = vm, ShowActivated = false, WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000 };
                 window.Show();
                 Flush();
 
@@ -126,12 +138,28 @@ public class UiSmokeTests
                 Assert.Equal(120, vm.Building.HeatedFloorArea);
                 VisitAllPages();
 
+                // 4) Switch to Ukrainian through the UI view model, visit everything, switch back.
+                var selectedClimate = vm.Building.SelectedClimate;
+                vm.SelectedLanguage = vm.Languages.Single(l => l.Value == AppLanguage.Ukrainian);
+                Assert.Equal(AppLanguage.Ukrainian, Localizer.Language);
+                Assert.Equal("Ukrainian", settings.Get(MainViewModel.LanguageSettingKey));
+                Assert.Same(selectedClimate, vm.Building.SelectedClimate);
+                Assert.Equal("Будівля", vm.Building.Title);
+                Assert.Equal("uk-UA", window.Language.IetfLanguageTag);
+                VisitAllPages();
+                vm.SelectedLanguage = vm.Languages.Single(l => l.Value == AppLanguage.English);
+                Assert.Equal("Building", vm.Building.Title);
+                VisitAllPages();
+                Localizer.LanguageChanged -= onLanguage;
+
                 window.Close();
                 Assert.DoesNotContain(dialogs.Messages, m => m.StartsWith("error", StringComparison.Ordinal));
                 Assert.True(listener.Errors.Count == 0, "Binding errors:\n" + string.Join("\n", listener.Errors.Distinct()));
+                Assert.True(Localizer.MissingKeys.Count == 0, "Missing translations: " + string.Join(", ", Localizer.MissingKeys));
             }
             finally
             {
+                Localizer.SetLanguage(AppLanguage.English);
                 PresentationTraceSources.DataBindingSource.Listeners.Remove(listener);
                 SqliteConnection.ClearAllPools();
                 Application.Current?.Shutdown();

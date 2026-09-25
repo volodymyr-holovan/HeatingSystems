@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using HeatingSystems.App.Services;
 using HeatingSystems.Core.Abstractions;
 using HeatingSystems.Core.Calculations;
+using HeatingSystems.Core.Localization;
 using HeatingSystems.Core.Projects;
 using HeatingSystems.Core.Reports;
 
@@ -16,14 +17,21 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ICatalogRepository _catalog;
     private readonly IProjectRepository _projects;
     private readonly IDialogService _dialogs;
+    private readonly ISettingsRepository _settings;
     private readonly CalculationService _calculation;
 
-    public MainViewModel(ICatalogRepository catalog, IProjectRepository projects, IDialogService dialogs)
+    public const string LanguageSettingKey = "ui.language";
+
+    public MainViewModel(ICatalogRepository catalog, IProjectRepository projects, ISettingsRepository settings, IDialogService dialogs)
     {
         _catalog = catalog;
         _projects = projects;
         _dialogs = dialogs;
+        _settings = settings;
         _calculation = new CalculationService(catalog);
+        _projectName = Localizer.T("project.newName");
+        _status = Localizer.T("status.ready");
+        _selectedLanguage = DisplayNames.Languages.First(l => l.Value == Localizer.Language);
 
         var reference = new ReferenceCache(catalog);
         Building = new BuildingViewModel(reference);
@@ -38,6 +46,7 @@ public sealed partial class MainViewModel : ObservableObject
         _selectedPage = Building;
 
         Projects.OpenRequested += (_, p) => OpenProject(p);
+        Localizer.LanguageChanged += (_, _) => OnLanguageChanged();
         ReferenceData.TariffsChanged += async (_, _) =>
         {
             if (Results.Outcome is not null) await CalculateAsync();
@@ -54,17 +63,35 @@ public sealed partial class MainViewModel : ObservableObject
     public IReadOnlyList<PageViewModel> Pages { get; }
 
     [ObservableProperty] private PageViewModel _selectedPage;
-    [ObservableProperty] private string _projectName = "Новий проєкт";
+    [ObservableProperty] private string _projectName;
     [ObservableProperty] private int? _projectId;
-    [ObservableProperty] private string _status = "Готово. Заповніть дані будівлі та натисніть «Розрахувати».";
+    [ObservableProperty] private string _status;
+    [ObservableProperty] private Option<AppLanguage> _selectedLanguage;
+
+    public IReadOnlyList<Option<AppLanguage>> Languages => DisplayNames.Languages;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CalculateCommand))]
     private bool _isBusy;
 
-    public string WindowTitle => $"Системи опалення — {ProjectName}";
+    public string WindowTitle => $"{Localizer.T("app.title")} — {ProjectName}";
 
     partial void OnProjectNameChanged(string value) => OnPropertyChanged(nameof(WindowTitle));
+
+    partial void OnSelectedLanguageChanged(Option<AppLanguage> value)
+    {
+        if (value is null) return;
+        _settings.Set(LanguageSettingKey, value.Value.ToString());
+        Localizer.SetLanguage(value.Value);
+    }
+
+    private void OnLanguageChanged()
+    {
+        foreach (var page in Pages) page.RefreshLanguage();
+        OnPropertyChanged(nameof(WindowTitle));
+        OnPropertyChanged(nameof(SelectedPage));
+        Status = Localizer.T("status.languageChanged");
+    }
 
     partial void OnSelectedPageChanged(PageViewModel value)
     {
@@ -80,27 +107,27 @@ public sealed partial class MainViewModel : ObservableObject
         var errors = Building.ValidationErrors;
         if (errors.Count > 0)
         {
-            _dialogs.ShowError("Перевірте вихідні дані:\n• " + string.Join("\n• ", errors));
+            _dialogs.ShowError(Localizer.T("status.checkInput") + "\n• " + string.Join("\n• ", errors));
             SelectedPage = Building;
             return;
         }
 
         IsBusy = true;
-        Status = "Розрахунок…";
+        Status = Localizer.T("status.calculating");
         try
         {
             var input = Building.ToBuildingInput();
             var options = Recommendation.BuildOptions();
             var outcome = await Task.Run(() => _calculation.Calculate(input, options));
             ApplyOutcome(outcome);
-            Status = $"Розраховано: Φ = {outcome.HeatLoss.DesignHeatLoad / 1000:0.00} кВт, " +
-                     $"Q = {outcome.Demand.SpaceHeating:N0} кВт·год/рік ({outcome.Demand.SpecificSpaceHeating:0} кВт·год/м²).";
+            Status = Localizer.F("status.calculated", outcome.HeatLoss.DesignHeatLoad / 1000, outcome.Demand.SpaceHeating,
+                outcome.Demand.SpecificSpaceHeating);
             if (SelectedPage == Building) SelectedPage = Results;
         }
         catch (Exception ex)
         {
-            Status = "Помилка розрахунку.";
-            _dialogs.ShowError("Помилка розрахунку: " + ex.Message);
+            Status = Localizer.T("status.calculationFailed");
+            _dialogs.ShowError(Localizer.F("error.calculation", ex.Message));
         }
         finally
         {
@@ -120,10 +147,10 @@ public sealed partial class MainViewModel : ObservableObject
     {
         Building.ResetToDefaults();
         ProjectId = null;
-        ProjectName = "Новий проєкт";
+        ProjectName = Localizer.T("project.newName");
         ApplyOutcome(null);
         SelectedPage = Building;
-        Status = "Створено новий проєкт.";
+        Status = Localizer.T("status.newProject");
     }
 
     [RelayCommand]
@@ -136,12 +163,12 @@ public sealed partial class MainViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(ProjectName))
         {
-            _dialogs.ShowError("Введіть назву проєкту.");
+            _dialogs.ShowError(Localizer.T("error.projectName"));
             return;
         }
         if (Building.SelectedClimate is null)
         {
-            _dialogs.ShowError("Оберіть місто.");
+            _dialogs.ShowError(Localizer.T("validation.city"));
             return;
         }
         try
@@ -151,11 +178,11 @@ public sealed partial class MainViewModel : ObservableObject
             ProjectId = _projects.SaveProject(ProjectName, json, Building.SelectedClimate.City,
                 o?.HeatLoss.DesignHeatLoad ?? 0, o?.Demand.SpaceHeating ?? 0, asNew ? null : ProjectId);
             Projects.Refresh();
-            Status = $"Проєкт «{ProjectName}» збережено.";
+            Status = Localizer.F("status.saved", ProjectName);
         }
         catch (Exception ex)
         {
-            _dialogs.ShowError("Не вдалося зберегти проєкт: " + ex.Message);
+            _dialogs.ShowError(Localizer.F("error.save", ex.Message));
         }
     }
 
@@ -163,18 +190,18 @@ public sealed partial class MainViewModel : ObservableObject
     {
         try
         {
-            var json = _projects.LoadProjectPayload(summary.Id) ?? throw new InvalidOperationException("Проєкт не знайдено.");
+            var json = _projects.LoadProjectPayload(summary.Id) ?? throw new InvalidOperationException(Localizer.T("error.projectNotFound"));
             Building.Load(ProjectData.FromJson(json));
             ProjectId = summary.Id;
             ProjectName = summary.Name;
             ApplyOutcome(null);
-            Status = $"Відкрито проєкт «{summary.Name}».";
+            Status = Localizer.F("status.opened", summary.Name);
             SelectedPage = Building;
             await CalculateAsync();
         }
         catch (Exception ex)
         {
-            _dialogs.ShowError("Не вдалося відкрити проєкт: " + ex.Message);
+            _dialogs.ShowError(Localizer.F("error.open", ex.Message));
         }
     }
 
@@ -183,22 +210,22 @@ public sealed partial class MainViewModel : ObservableObject
     {
         if (Results.Outcome is not { } outcome)
         {
-            _dialogs.ShowInfo("Спочатку виконайте розрахунок.");
+            _dialogs.ShowInfo(Localizer.T("status.calculateFirst"));
             return;
         }
         var safeName = string.Concat(ProjectName.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
-        var path = _dialogs.SaveFile($"{safeName} — звіт.html", "Звіт HTML (*.html)|*.html");
+        var path = _dialogs.SaveFile(Localizer.F("report.fileName", safeName), Localizer.T("report.fileFilter"));
         if (path is null) return;
         try
         {
             var html = HtmlReportBuilder.Build(outcome, ProjectName, _catalog.GetStatistics().DataSource);
             File.WriteAllText(path, html, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
-            Status = $"Звіт збережено: {path}";
+            Status = Localizer.F("status.reportSaved", path);
             _dialogs.OpenWithShell(path);
         }
         catch (Exception ex)
         {
-            _dialogs.ShowError("Не вдалося зберегти звіт: " + ex.Message);
+            _dialogs.ShowError(Localizer.F("error.report", ex.Message));
         }
     }
 }

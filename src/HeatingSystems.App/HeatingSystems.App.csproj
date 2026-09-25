@@ -5,7 +5,7 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>HeatingSystems.App</RootNamespace>
     <AssemblyName>HeatingSystems</AssemblyName>
-    <AssemblyTitle>Системи опалення</AssemblyTitle>
+    <AssemblyTitle>Heating Systems</AssemblyTitle>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>

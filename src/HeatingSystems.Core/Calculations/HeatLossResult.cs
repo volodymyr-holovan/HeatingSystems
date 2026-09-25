@@ -1,3 +1,5 @@
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.Core.Calculations;
 
 public enum LossCategory
@@ -8,19 +10,23 @@ public enum LossCategory
 }
 
 /// <summary>Heat loss of one envelope element or of ventilation.</summary>
+/// <param name="NameKey">Localisation key of the element name.</param>
 /// <param name="Area">Area, m² (0 for ventilation).</param>
 /// <param name="UValue">Thermal transmittance used, W/(m²·K) (including thermal bridge surcharge).</param>
 /// <param name="TemperatureFactor">Temperature correction factor b (or f_g1·f_g2 for ground).</param>
 /// <param name="Coefficient">Heat loss coefficient H, W/K, at design conditions.</param>
 /// <param name="DesignLoss">Design heat loss Φ, W.</param>
 public sealed record HeatLossItem(
-    string Name,
+    string NameKey,
     LossCategory Category,
     double Area,
     double UValue,
     double TemperatureFactor,
     double Coefficient,
-    double DesignLoss);
+    double DesignLoss)
+{
+    public string Name => Localizer.T(NameKey);
+}
 
 /// <summary>Result of the design heat load calculation (EN 12831).</summary>
 public sealed class HeatLossResult

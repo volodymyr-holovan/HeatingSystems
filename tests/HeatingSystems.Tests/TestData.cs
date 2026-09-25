@@ -4,14 +4,14 @@ namespace HeatingSystems.Tests;
 
 internal static class TestData
 {
-    public static readonly Material Brick = new(1, "Цегла", MaterialCategory.Masonry, 0.81, 1800, "test");
-    public static readonly Material Eps = new(14, "EPS", MaterialCategory.Insulation, 0.040, 20, "test");
-    public static readonly Material Plaster = new(23, "Штукатурка", MaterialCategory.Finish, 0.93, 1800, "test");
-    public static readonly Material MineralWool = new(18, "Мінвата", MaterialCategory.Insulation, 0.037, 15, "test");
-    public static readonly Material Concrete = new(9, "Залізобетон", MaterialCategory.Concrete, 2.04, 2500, "test");
-    public static readonly WindowType Pvc = new(5, "ПВХ", 1.3, 0.6, "test");
+    public static readonly Material Brick = new(1, "Solid clay brick", "Цегла керамічна повнотіла", MaterialCategory.Masonry, 0.81, 1800, "test");
+    public static readonly Material Eps = new(14, "Expanded polystyrene EPS", "Пінополістирол EPS", MaterialCategory.Insulation, 0.040, 20, "test");
+    public static readonly Material Plaster = new(23, "Cement-sand plaster", "Штукатурка цементно-піщана", MaterialCategory.Finish, 0.93, 1800, "test");
+    public static readonly Material MineralWool = new(18, "Glass wool", "Мінеральна вата (скловолокно)", MaterialCategory.Insulation, 0.037, 15, "test");
+    public static readonly Material Concrete = new(9, "Reinforced concrete", "Залізобетон", MaterialCategory.Concrete, 2.04, 2500, "test");
+    public static readonly WindowType Pvc = new(5, "PVC low-e", "ПВХ енергозберігаючий", 1.3, 0.6, "test");
 
-    public static readonly ClimateLocation Kyiv = new(1, "Київ", "м. Київ", -22, 176, -0.1, 7.7, "test");
+    public static readonly ClimateLocation Kyiv = new(1, "Kyiv", "Київ", "Kyiv City", "м. Київ", -22, 176, -0.1, 7.7, "test");
 
     public static BuildingInput House(ClimateLocation? climate = null, EmitterType emitter = EmitterType.Radiators,
         double internalGains = 4.0, bool hotWater = true) => new()

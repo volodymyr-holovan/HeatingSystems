@@ -1,22 +1,40 @@
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using HeatingSystems.Core.Localization;
 
 namespace HeatingSystems.App.ViewModels;
 
-/// <summary>Value with a Ukrainian display name for combo boxes.</summary>
-public sealed record Option<T>(T Value, string Name)
+/// <summary>Value with a localised display name for combo boxes; the name follows the UI language.</summary>
+public sealed class Option<T> : INotifyPropertyChanged
 {
+    public Option(T value, string nameKey)
+    {
+        Value = value;
+        NameKey = nameKey;
+        Localizer.LanguageChanged += (_, _) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+    }
+
+    public T Value { get; }
+    public string NameKey { get; }
+    public string Name => Localizer.T(NameKey);
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     public override string ToString() => Name;
 }
 
 /// <summary>Base class of the pages shown in the navigation sidebar.</summary>
-public abstract class PageViewModel(string title, string glyph, string subtitle) : ObservableObject
+public abstract class PageViewModel(string titleKey, string glyph, string subtitleKey) : ObservableObject
 {
-    public string Title { get; } = title;
+    public string Title => Localizer.T(titleKey);
 
     /// <summary>Segoe MDL2 Assets / Segoe Fluent Icons glyph.</summary>
     public string Glyph { get; } = glyph;
 
-    public string Subtitle { get; } = subtitle;
+    public string Subtitle => Localizer.T(subtitleKey);
+
+    /// <summary>Re-evaluates all bindings after the UI language changed.</summary>
+    public virtual void RefreshLanguage() => OnPropertyChanged(string.Empty);
 }
 
 /// <summary>One bar of a horizontal or vertical bar chart.</summary>

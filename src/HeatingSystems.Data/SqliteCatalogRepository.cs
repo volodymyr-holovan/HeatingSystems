@@ -17,24 +17,26 @@ public sealed class SqliteCatalogRepository(SqliteConnectionFactory factory) : I
         """;
 
     public IReadOnlyList<Material> GetMaterials() => Query(
-        "SELECT id, name, category, conductivity, density, source FROM materials ORDER BY category, name",
-        r => new Material(r.GetInt32(0), r.GetString(1), (MaterialCategory)r.GetInt32(2), r.GetDouble(3), r.GetDouble(4), r.GetString(5)));
+        "SELECT id, name_en, name_uk, category, conductivity, density, source FROM materials ORDER BY category, id",
+        r => new Material(r.GetInt32(0), r.GetString(1), r.GetString(2), (MaterialCategory)r.GetInt32(3), r.GetDouble(4), r.GetDouble(5), r.GetString(6)));
 
     public IReadOnlyList<WindowType> GetWindowTypes() => Query(
-        "SELECT id, name, u_value, g_value, source FROM window_types ORDER BY u_value DESC",
-        r => new WindowType(r.GetInt32(0), r.GetString(1), r.GetDouble(2), r.GetDouble(3), r.GetString(4)));
+        "SELECT id, name_en, name_uk, u_value, g_value, source FROM window_types ORDER BY u_value DESC",
+        r => new WindowType(r.GetInt32(0), r.GetString(1), r.GetString(2), r.GetDouble(3), r.GetDouble(4), r.GetString(5)));
 
     public IReadOnlyList<ClimateLocation> GetClimateLocations() => Query(
         """
-        SELECT id, city, region, design_temperature, heating_days, heating_mean_temperature, annual_mean_temperature, source
-        FROM climate_locations ORDER BY city
+        SELECT id, city_en, city_uk, region_en, region_uk, design_temperature, heating_days, heating_mean_temperature,
+               annual_mean_temperature, source
+        FROM climate_locations ORDER BY city_en
         """,
-        r => new ClimateLocation(r.GetInt32(0), r.GetString(1), r.GetString(2), r.GetDouble(3), r.GetInt32(4),
-            r.GetDouble(5), r.GetDouble(6), r.GetString(7)));
+        r => new ClimateLocation(r.GetInt32(0), r.GetString(1), r.GetString(2), r.GetString(3), r.GetString(4), r.GetDouble(5),
+            r.GetInt32(6), r.GetDouble(7), r.GetDouble(8), r.GetString(9)));
 
     public IReadOnlyList<EnergyCarrier> GetEnergyCarriers() => Query(
-        "SELECT code, name, unit, energy_per_unit, price_per_unit, co2_per_kwh, source FROM energy_carriers ORDER BY rowid",
-        r => new EnergyCarrier(r.GetString(0), r.GetString(1), r.GetString(2), r.GetDouble(3), r.GetDouble(4), r.GetDouble(5), r.GetString(6)));
+        "SELECT code, name_en, name_uk, unit_en, unit_uk, energy_per_unit, price_per_unit, co2_per_kwh, source FROM energy_carriers ORDER BY rowid",
+        r => new EnergyCarrier(r.GetString(0), r.GetString(1), r.GetString(2), r.GetString(3), r.GetString(4), r.GetDouble(5),
+            r.GetDouble(6), r.GetDouble(7), r.GetString(8)));
 
     public void UpdateEnergyCarrier(string code, double pricePerUnit, double co2PerKWh)
     {
@@ -51,8 +53,12 @@ public sealed class SqliteCatalogRepository(SqliteConnectionFactory factory) : I
     }
 
     public IReadOnlyList<HeatingTechnology> GetHeatingTechnologies() => Query(
-        "SELECT code, name, carrier_code, seasonal_efficiency, low_temperature_bonus, description, source FROM heating_technologies ORDER BY rowid",
-        r => new HeatingTechnology(r.GetString(0), r.GetString(1), r.GetString(2), r.GetDouble(3), r.GetDouble(4), r.GetString(5), r.GetString(6)));
+        """
+        SELECT code, name_en, name_uk, carrier_code, seasonal_efficiency, low_temperature_bonus, description_en, description_uk, source
+        FROM heating_technologies ORDER BY rowid
+        """,
+        r => new HeatingTechnology(r.GetString(0), r.GetString(1), r.GetString(2), r.GetString(3), r.GetDouble(4), r.GetDouble(5),
+            r.GetString(6), r.GetString(7), r.GetString(8)));
 
     public IReadOnlyList<EnvelopeRequirement> GetEnvelopeRequirements() => Query(
         "SELECT climate_zone, element, min_resistance, source FROM envelope_requirements",

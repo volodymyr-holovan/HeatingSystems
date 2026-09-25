@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using HeatingSystems.Core.Calculations;
 
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.App.ViewModels;
 
 public sealed record ComparisonRow(
@@ -18,16 +20,25 @@ public sealed record ComparisonRow(
     double MonthlyCost,
     string Notes);
 
-/// <summary>Running costs and emissions of all heat generators (page "Порівняння").</summary>
-public sealed partial class ComparisonViewModel() : PageViewModel("Порівняння", "\uE8EF", "Експлуатаційні витрати та викиди CO₂")
+/// <summary>Running costs and emissions of all heat generators (page "Comparison").</summary>
+public sealed partial class ComparisonViewModel() : PageViewModel("page.comparison", "\uE8EF", "page.comparison.subtitle")
 {
     [ObservableProperty] private bool _hasResults;
     [ObservableProperty] private string _summary = "";
 
+    private CalculationOutcome? _outcome;
+
     public ObservableCollection<ComparisonRow> Rows { get; } = new();
+
+    public override void RefreshLanguage()
+    {
+        Update(_outcome);
+        base.RefreshLanguage();
+    }
 
     public void Update(CalculationOutcome? outcome)
     {
+        _outcome = outcome;
         Rows.Clear();
         HasResults = outcome is not null && outcome.Options.Count > 0;
         if (!HasResults) { Summary = ""; return; }
@@ -44,8 +55,7 @@ public sealed partial class ComparisonViewModel() : PageViewModel("Порівн�
 
         var best = options[0];
         var worst = options[^1];
-        Summary = $"Найдешевша в експлуатації: {best.Name} — {best.AnnualCost:N0} грн/рік " +
-                  $"(на {worst.AnnualCost - best.AnnualCost:N0} грн менше, ніж {worst.Name}). " +
-                  $"Потреба в теплоті: {outcome.Demand.Total:N0} кВт·год/рік (опалення + ГВП).";
+        Summary = Localizer.F("comparison.summary", best.Name, best.AnnualCost, worst.AnnualCost - best.AnnualCost, worst.Name,
+            outcome.Demand.Total);
     }
 }

@@ -2,10 +2,12 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using HeatingSystems.Core.Calculations;
 
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.App.ViewModels;
 
-/// <summary>Heat load and energy demand results (page "Результати").</summary>
-public sealed partial class ResultsViewModel() : PageViewModel("Результати", "\uE9D2", "Тепловтрати та річна потреба в енергії")
+/// <summary>Heat load and energy demand results (page "Results").</summary>
+public sealed partial class ResultsViewModel() : PageViewModel("page.results", "\uE9D2", "page.results.subtitle")
 {
     [ObservableProperty] private bool _hasResults;
     [ObservableProperty] private CalculationOutcome? _outcome;
@@ -26,19 +28,26 @@ public sealed partial class ResultsViewModel() : PageViewModel("Результа
     public double VentilationCoefficient => Outcome?.HeatLoss.VentilationCoefficient ?? 0;
     public double EffectiveAirFlow => Outcome?.HeatLoss.EffectiveAirFlow ?? 0;
     public string Location => Outcome is { } o
-        ? $"{o.Building.Climate.City}, θe = {o.Building.Climate.DesignTemperature:0} °C, θi = {o.Building.IndoorTemperature:0.#} °C, зона {o.Building.Climate.ClimateZone}"
+        ? Localizer.F("results.location", o.Building.Climate.City, o.Building.Climate.DesignTemperature, o.Building.IndoorTemperature,
+            o.Building.Climate.ClimateZone)
         : "";
 
     /// <summary>Energy efficiency hint by specific space heating need, kWh/(m²·a).</summary>
     public string EfficiencyLabel => SpecificSpaceHeating switch
     {
         <= 0 => "",
-        < 30 => "дуже низька потреба (рівень пасивного будинку)",
-        < 60 => "низька потреба (енергоефективний будинок)",
-        < 100 => "помірна потреба (сучасні вимоги)",
-        < 150 => "підвищена потреба (рекомендовано утеплення)",
-        _ => "висока потреба (необхідна термомодернізація)",
+        < 30 => Localizer.T("efficiency.passive"),
+        < 60 => Localizer.T("efficiency.low"),
+        < 100 => Localizer.T("efficiency.moderate"),
+        < 150 => Localizer.T("efficiency.elevated"),
+        _ => Localizer.T("efficiency.high"),
     };
+
+    public override void RefreshLanguage()
+    {
+        OnOutcomeChanged(Outcome);
+        base.RefreshLanguage();
+    }
 
     partial void OnOutcomeChanged(CalculationOutcome? value)
     {
@@ -52,7 +61,7 @@ public sealed partial class ResultsViewModel() : PageViewModel("Результа
             var max = value.HeatLoss.Items.Max(i => i.DesignLoss);
             foreach (var item in value.HeatLoss.Items.OrderByDescending(i => i.DesignLoss))
                 LossBars.Add(new BarItem(item.Name, item.DesignLoss, max > 0 ? item.DesignLoss / max : 0,
-                    $"{item.DesignLoss:N0} Вт · {item.DesignLoss / total:P0}", item.Category.ToString()));
+                    Localizer.F("results.lossBar", item.DesignLoss, item.DesignLoss / total), item.Category.ToString()));
 
             // Annual space heating energy per 2 K outdoor temperature class.
             var classes = value.Demand.Bins
@@ -64,7 +73,7 @@ public sealed partial class ResultsViewModel() : PageViewModel("Результа
             var maxEnergy = classes.Count > 0 ? classes.Max(c => c.Energy) : 0;
             foreach (var c in classes)
                 BinBars.Add(new BarItem($"{c.Temperature:0}", c.Energy, maxEnergy > 0 ? c.Energy / maxEnergy : 0,
-                    $"{c.Temperature:0}…{c.Temperature + 2:0} °C: {c.Energy:N0} кВт·год, {c.Hours:N0} год"));
+                    Localizer.F("results.binBar", c.Temperature, c.Temperature + 2, c.Energy, c.Hours)));
 
             foreach (var check in value.EnvelopeChecks) EnvelopeChecks.Add(check);
         }

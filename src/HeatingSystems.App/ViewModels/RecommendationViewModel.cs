@@ -7,6 +7,8 @@ using HeatingSystems.Core.Calculations;
 using HeatingSystems.Core.Models;
 using HeatingSystems.Core.Recommendations;
 
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.App.ViewModels;
 
 public sealed class RecommendationRow(Recommendation recommendation)
@@ -30,12 +32,12 @@ public sealed class RecommendationRow(Recommendation recommendation)
     public double Electricity => R.Result.TotalElectricity;
     public double AnnualCost => R.AnnualCost;
     public double AnnualCo2 => R.AnnualCo2;
-    public string Noise => HeatPump.SoundPowerOutdoor is { } n ? $"{n:0} дБ(А)" : "н/д";
+    public string Noise => HeatPump.SoundPowerOutdoor is { } n ? Localizer.F("unit.dbaValue", n) : Localizer.T("common.notAvailable");
     public string Refrigerant => HeatPump.Refrigerant;
-    public string Variants => R.Variants.Count == 0 ? "" : "Ідентичні моделі: " + string.Join("; ", R.Variants);
+    public string Variants => R.Variants.Count == 0 ? "" : Localizer.F("recommendation.variants", string.Join("; ", R.Variants));
 }
 
-/// <summary>Heat pump selection (page "Підбір ТН").</summary>
+/// <summary>Heat pump selection (page "Heat pump selection").</summary>
 public sealed partial class RecommendationViewModel : PageViewModel
 {
     private readonly ICatalogRepository _catalog;
@@ -43,7 +45,7 @@ public sealed partial class RecommendationViewModel : PageViewModel
     private CalculationOutcome? _outcome;
 
     public RecommendationViewModel(ICatalogRepository catalog, IDialogService dialogs)
-        : base("Підбір ТН", "\uE945", "Теплові насоси з каталогу, змодельовані для вашої будівлі")
+        : base("page.selection", "\uE945", "page.selection.subtitle")
     {
         _catalog = catalog;
         _dialogs = dialogs;
@@ -59,7 +61,7 @@ public sealed partial class RecommendationViewModel : PageViewModel
     [ObservableProperty] private int _count = 20;
     [ObservableProperty] private bool _hasResults;
     [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private string _status = "Спочатку виконайте розрахунок будівлі.";
+    [ObservableProperty] private string _status = Localizer.T("recommendation.calculateFirst");
     [ObservableProperty] private RecommendationRow? _selected;
 
     public ObservableCollection<RecommendationRow> Rows { get; } = new();
@@ -93,13 +95,13 @@ public sealed partial class RecommendationViewModel : PageViewModel
     {
         if (_outcome is null)
         {
-            _dialogs.ShowInfo("Спочатку виконайте розрахунок будівлі на сторінці «Будівля».");
+            _dialogs.ShowInfo(Localizer.T("recommendation.calculateFirstDialog"));
             return;
         }
         var options = BuildOptions();
         if (options.Sources.Count == 0)
         {
-            _dialogs.ShowInfo("Оберіть хоча б одне джерело теплоти.");
+            _dialogs.ShowInfo(Localizer.T("recommendation.noSource"));
             return;
         }
 
@@ -107,12 +109,12 @@ public sealed partial class RecommendationViewModel : PageViewModel
         var electricity = carriers.FirstOrDefault(c => c.Code == SystemComparison.ElectricityCode);
         if (electricity is null)
         {
-            _dialogs.ShowError("У довіднику немає тарифу на електроенергію.");
+            _dialogs.ShowError(Localizer.T("recommendation.noElectricity"));
             return;
         }
 
         IsBusy = true;
-        Status = "Моделювання теплових насосів…";
+        Status = Localizer.T("recommendation.running");
         try
         {
             var o = _outcome;
@@ -121,12 +123,20 @@ public sealed partial class RecommendationViewModel : PageViewModel
         }
         catch (Exception ex)
         {
-            _dialogs.ShowError("Помилка підбору: " + ex.Message);
+            _dialogs.ShowError(Localizer.F("recommendation.error", ex.Message));
         }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    public override void RefreshLanguage()
+    {
+        var rank = Selected?.Rank;
+        Show(Rows.Select(r => r.Source).ToList());
+        Selected = Rows.FirstOrDefault(r => r.Rank == rank) ?? Rows.FirstOrDefault();
+        base.RefreshLanguage();
     }
 
     private void Show(IReadOnlyList<Recommendation> list)
@@ -136,10 +146,9 @@ public sealed partial class RecommendationViewModel : PageViewModel
         HasResults = Rows.Count > 0;
         Selected = Rows.FirstOrDefault();
         Status = _outcome is null
-            ? "Спочатку виконайте розрахунок будівлі."
+            ? Localizer.T("recommendation.calculateFirst")
             : Rows.Count == 0
-                ? "Немає моделей, що відповідають умовам. Послабте обмеження (шум, покриття, джерело)."
-                : $"Знайдено {Rows.Count} варіантів для навантаження {_outcome.HeatLoss.DesignHeatLoad / 1000:0.0} кВт. " +
-                  "Рейтинг — за річними витратами на електроенергію; вартість обладнання та буріння свердловин не враховано.";
+                ? Localizer.T("recommendation.none")
+                : Localizer.F("recommendation.found", Rows.Count, _outcome.HeatLoss.DesignHeatLoad / 1000);
     }
 }

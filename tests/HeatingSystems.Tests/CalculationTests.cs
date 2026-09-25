@@ -268,7 +268,7 @@ public class SystemComparisonTests
     [Fact]
     public void CondensingBoiler_EfficiencyDependsOnFlowTemperature()
     {
-        var t = new HeatingTechnology("gas_condensing", "Газ", "natural_gas", 0.90, 0.08, "", "");
+        var t = new HeatingTechnology("gas_condensing", "Gas condensing boiler", "Газовий конденсаційний котел", "natural_gas", 0.90, 0.08, "", "", "");
         Assert.Equal(0.98, t.EfficiencyAt(35), 9);
         Assert.Equal(0.90, t.EfficiencyAt(70), 9);
         Assert.Equal(0.90 + 0.08 * 15 / 35, t.EfficiencyAt(55), 9);
@@ -280,8 +280,8 @@ public class SystemComparisonTests
         var b = TestData.House();
         var loss = HeatLossCalculator.Calculate(b);
         var demand = EnergyDemandCalculator.Calculate(b, loss);
-        var gas = new EnergyCarrier("natural_gas", "Газ", "м³", 9.3, 7.96, 0.202, "");
-        var tech = new HeatingTechnology("gas_standard", "Котел", "natural_gas", 0.86, 0, "", "");
+        var gas = new EnergyCarrier("natural_gas", "Natural gas", "Природний газ", "m³", "м³", 9.3, 7.96, 0.202, "");
+        var tech = new HeatingTechnology("gas_standard", "Gas boiler", "Газовий котел", "natural_gas", 0.86, 0, "", "", "");
 
         var option = SystemComparison.Evaluate(tech, gas, demand, 55);
         var final = demand.Total / 0.86;

@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DB_DIR = ROOT / "database"
 RAW_CSV = DB_DIR / "raw" / "hplib_database.csv"
 HPLIB_COMMIT = "125c2ef6c3fc38043368daac1352557fd2a90106"
-CATALOG_VERSION = "2026.09.1"
+CATALOG_VERSION = "2026.09.2"
 
 # hplib group id -> (source_type, control); 1 air, 2 brine, 3 water; 1 regulated, 2 on/off
 GROUPS = {1: (1, 1), 2: (2, 1), 3: (3, 1), 4: (1, 2), 5: (2, 2), 6: (3, 2)}
@@ -174,7 +174,7 @@ def build(output: Path) -> dict:
 
         digest = hashlib.sha256(RAW_CSV.read_bytes()).hexdigest()
         meta = {
-            "schema_version": "1",
+            "schema_version": "2",
             "catalog_version": CATALOG_VERSION,
             "built_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
             "data_source": "Heat Pump KEYMARK certified products via hplib (github.com/FZJ-IEK3-VSA/hplib, MIT licence)",

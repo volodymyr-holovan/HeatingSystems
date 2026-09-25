@@ -2,11 +2,13 @@ using System.Diagnostics;
 using System.Windows;
 using Microsoft.Win32;
 
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.App.Services;
 
 public sealed class DialogService : IDialogService
 {
-    private const string Caption = "Системи опалення";
+    private static string Caption => Localizer.T("app.title");
 
     private static Window? Owner => Application.Current?.MainWindow;
 

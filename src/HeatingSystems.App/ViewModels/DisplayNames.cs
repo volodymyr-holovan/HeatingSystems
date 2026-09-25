@@ -1,78 +1,83 @@
+using HeatingSystems.Core.Localization;
 using HeatingSystems.Core.Models;
 
 namespace HeatingSystems.App.ViewModels;
 
-/// <summary>Ukrainian names for enumerations.</summary>
+/// <summary>Localised names for enumerations.</summary>
 public static class DisplayNames
 {
     public static IReadOnlyList<Option<RoofType>> RoofTypes { get; } = new Option<RoofType>[]
     {
-        new(RoofType.UnheatedAttic, "Перекриття під холодним горищем"),
-        new(RoofType.ExposedRoof, "Суміщене покриття (плоский / мансардний дах)"),
+        new(RoofType.UnheatedAttic, "roofType.attic"),
+        new(RoofType.ExposedRoof, "roofType.exposed"),
     };
 
     public static IReadOnlyList<Option<FloorType>> FloorTypes { get; } = new Option<FloorType>[]
     {
-        new(FloorType.SlabOnGround, "Підлога по ґрунту"),
-        new(FloorType.AboveUnheatedBasement, "Над неопалюваним підвалом"),
-        new(FloorType.AboveOutdoorAir, "Над проїздом (зовнішнє повітря)"),
+        new(FloorType.SlabOnGround, "floorType.slab"),
+        new(FloorType.AboveUnheatedBasement, "floorType.basement"),
+        new(FloorType.AboveOutdoorAir, "floorType.outdoor"),
     };
 
     public static IReadOnlyList<Option<EmitterType>> Emitters { get; } = new Option<EmitterType>[]
     {
-        new(EmitterType.Underfloor, "Тепла підлога (35 °C)"),
-        new(EmitterType.LowTemperatureRadiators, "Низькотемпературні радіатори / фанкойли (45 °C)"),
-        new(EmitterType.Radiators, "Панельні радіатори (55 °C)"),
-        new(EmitterType.HighTemperatureRadiators, "Старі чавунні радіатори (70 °C)"),
+        new(EmitterType.Underfloor, "emitter.underfloor"),
+        new(EmitterType.LowTemperatureRadiators, "emitter.lowTemperature"),
+        new(EmitterType.Radiators, "emitter.radiators"),
+        new(EmitterType.HighTemperatureRadiators, "emitter.highTemperature"),
     };
 
     public static IReadOnlyList<Option<ThermalMassClass>> ThermalMasses { get; } = new Option<ThermalMassClass>[]
     {
-        new(ThermalMassClass.Light, "Легка (каркас, дерево)"),
-        new(ThermalMassClass.Medium, "Середня"),
-        new(ThermalMassClass.Heavy, "Масивна (цегла, бетон)"),
+        new(ThermalMassClass.Light, "mass.light"),
+        new(ThermalMassClass.Medium, "mass.medium"),
+        new(ThermalMassClass.Heavy, "mass.heavy"),
     };
 
     public static IReadOnlyList<Option<double>> Shielding { get; } = new Option<double>[]
     {
-        new(0.05, "Відкрита місцевість (e = 0,05)"),
-        new(0.03, "Помірне затінення (e = 0,03)"),
-        new(0.02, "Щільна забудова (e = 0,02)"),
+        new(0.05, "shielding.open"),
+        new(0.03, "shielding.moderate"),
+        new(0.02, "shielding.heavy"),
     };
 
     public static IReadOnlyList<Option<HeatSource?>> Sources { get; } = new Option<HeatSource?>[]
     {
-        new(null, "Усі джерела"),
-        new(HeatSource.Air, "Повітря–вода"),
-        new(HeatSource.Brine, "Ґрунт–вода (розсіл)"),
-        new(HeatSource.Water, "Вода–вода"),
+        new(null, "catalog.allSources"),
+        new(HeatSource.Air, "source.air"),
+        new(HeatSource.Brine, "source.brine"),
+        new(HeatSource.Water, "source.water"),
     };
 
     public static IReadOnlyList<Option<CompressorControl?>> Controls { get; } = new Option<CompressorControl?>[]
     {
-        new(null, "Будь-яке керування"),
-        new(CompressorControl.Regulated, "Інверторні"),
-        new(CompressorControl.OnOff, "Вкл./викл."),
+        new(null, "catalog.anyControl"),
+        new(CompressorControl.Regulated, "control.inverter"),
+        new(CompressorControl.OnOff, "control.onOff"),
     };
 
-    public static string Source(HeatSource source) => source switch
+    public static IReadOnlyList<Option<AppLanguage>> Languages { get; } = new Option<AppLanguage>[]
     {
-        HeatSource.Air => "Повітря–вода",
-        HeatSource.Brine => "Ґрунт–вода",
-        HeatSource.Water => "Вода–вода",
-        _ => source.ToString(),
+        new(AppLanguage.English, "language.english"),
+        new(AppLanguage.Ukrainian, "language.ukrainian"),
     };
+
+    public static string Source(HeatSource source) => Localizer.T(source switch
+    {
+        HeatSource.Air => "source.air",
+        HeatSource.Brine => "source.brine",
+        _ => "source.water",
+    });
 
     public static string Control(CompressorControl control) =>
-        control == CompressorControl.Regulated ? "Інвертор" : "Вкл./викл.";
+        Localizer.T(control == CompressorControl.Regulated ? "control.inverter" : "control.onOff");
 
-    public static string Category(MaterialCategory category) => category switch
+    public static string Category(MaterialCategory category) => Localizer.T(category switch
     {
-        MaterialCategory.Masonry => "Кладка",
-        MaterialCategory.Concrete => "Бетон",
-        MaterialCategory.Timber => "Деревина",
-        MaterialCategory.Insulation => "Утеплювач",
-        MaterialCategory.Finish => "Оздоблення",
-        _ => category.ToString(),
-    };
+        MaterialCategory.Masonry => "category.masonry",
+        MaterialCategory.Concrete => "category.concrete",
+        MaterialCategory.Timber => "category.timber",
+        MaterialCategory.Insulation => "category.insulation",
+        _ => "category.finish",
+    });
 }

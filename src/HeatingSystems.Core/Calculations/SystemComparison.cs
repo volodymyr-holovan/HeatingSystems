@@ -1,3 +1,4 @@
+using HeatingSystems.Core.Localization;
 using HeatingSystems.Core.Models;
 
 namespace HeatingSystems.Core.Calculations;
@@ -16,8 +17,9 @@ public enum SystemKind
 /// <param name="FuelQuantity">Fuel quantity in the carrier's unit, per year.</param>
 /// <param name="AnnualCost">Annual energy cost, UAH.</param>
 /// <param name="AnnualCo2">Annual CO₂ emissions, kg.</param>
+/// <param name="Technology">Heat generator (null for heat pumps).</param>
+/// <param name="HeatPump">Simulated heat pump (null for other generators).</param>
 public sealed record SystemOption(
-    string Name,
     SystemKind Kind,
     EnergyCarrier Carrier,
     double Efficiency,
@@ -25,8 +27,21 @@ public sealed record SystemOption(
     double FuelQuantity,
     double AnnualCost,
     double AnnualCo2,
-    string Notes)
+    HeatingTechnology? Technology,
+    HeatPumpSeasonalResult? HeatPump)
 {
+    /// <summary>Display name in the current language.</summary>
+    public string Name => HeatPump is { } hp
+        ? Localizer.F("option.heatPump", hp.HeatPump.DisplayName)
+        : Technology?.Name ?? "";
+
+    /// <summary>Remark in the current language.</summary>
+    public string Notes => HeatPump is { } hp
+        ? hp.Coverage < 0.999
+            ? Localizer.F("option.backupShare", (1 - hp.Coverage) * 100)
+            : Localizer.T("option.noBackup")
+        : Technology?.Description ?? "";
+
     public double CostPerKWhHeat(double heat) => heat > 0 ? AnnualCost / heat : 0;
 }
 
@@ -45,24 +60,20 @@ public static class SystemComparison
             "district_heat" => SystemKind.DistrictHeating,
             _ => SystemKind.Combustion,
         };
-        return Build(tech.Name, kind, carrier, eff, final, tech.Description);
+        return Build(kind, carrier, eff, final, tech, null);
     }
 
-    public static SystemOption Evaluate(HeatPumpSeasonalResult hp, EnergyCarrier electricity)
-    {
-        var notes = hp.Coverage < 0.999
-            ? $"Резервний ТЕН покриває {(1 - hp.Coverage) * 100:0.#} % опалення"
-            : "Покриває все навантаження без резервного ТЕНа";
-        return Build($"Тепловий насос: {hp.HeatPump.DisplayName}", SystemKind.HeatPump, electricity,
-            hp.OverallSpf, hp.TotalElectricity, notes);
-    }
+    public static SystemOption Evaluate(HeatPumpSeasonalResult hp, EnergyCarrier electricity) =>
+        Build(SystemKind.HeatPump, electricity, hp.OverallSpf, hp.TotalElectricity, null, hp);
 
-    private static SystemOption Build(string name, SystemKind kind, EnergyCarrier carrier, double eff, double final, string notes) =>
-        new(name, kind, carrier, eff, final,
+    private static SystemOption Build(SystemKind kind, EnergyCarrier carrier, double eff, double final,
+        HeatingTechnology? technology, HeatPumpSeasonalResult? heatPump) =>
+        new(kind, carrier, eff, final,
             carrier.EnergyPerUnit > 0 ? final / carrier.EnergyPerUnit : 0,
             final * carrier.PricePerKWh,
             final * carrier.Co2PerKWh,
-            notes);
+            technology,
+            heatPump);
 
     public static IReadOnlyList<SystemOption> Compare(
         IEnumerable<HeatingTechnology> technologies,

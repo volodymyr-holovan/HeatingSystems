@@ -7,6 +7,10 @@
     <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Localization\strings-en.json" LogicalName="HeatingSystems.Core.Localization.strings-en.json" />
+    <EmbeddedResource Include="Localization\strings-uk.json" LogicalName="HeatingSystems.Core.Localization.strings-uk.json" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="HeatingSystems.Tests" />
   </ItemGroup>
 </Project>

@@ -128,16 +128,16 @@ public class ProjectRepositoryTests(CatalogFixture db) : IClassFixture<CatalogFi
 
         var building = TestData.House(climates[1]);
         var json = ProjectData.FromBuilding(building).ToJson();
-        var id = db.Projects.SaveProject("Будинок", json, building.Climate.City, 7000, 15000);
+        var id = db.Projects.SaveProject("House", json, building.Climate.City, 7000, 15000);
 
         var restored = ProjectData.FromJson(db.Projects.LoadProjectPayload(id)!).ToBuilding(climates, materials, windows);
         Assert.Equal(building.HeatedFloorArea, restored.HeatedFloorArea);
         Assert.Equal(building.Wall.Layers.Count, restored.Wall.Layers.Count);
         Assert.Equal(building.Emitter, restored.Emitter);
-        Assert.Contains(db.Projects.ListProjects(), p => p.Id == id && p.Name == "Будинок");
+        Assert.Contains(db.Projects.ListProjects(), p => p.Id == id && p.Name == "House");
 
-        db.Projects.SaveProject("Будинок 2", json, "Київ", 1, 2, id);
-        Assert.Contains(db.Projects.ListProjects(), p => p.Id == id && p.Name == "Будинок 2");
+        db.Projects.SaveProject("House 2", json, "Kyiv", 1, 2, id);
+        Assert.Contains(db.Projects.ListProjects(), p => p.Id == id && p.Name == "House 2");
 
         db.Projects.DeleteProject(id);
         Assert.Null(db.Projects.LoadProjectPayload(id));
@@ -159,7 +159,7 @@ public class ProjectRepositoryTests(CatalogFixture db) : IClassFixture<CatalogFi
         var userDb = Path.Combine(db.Directory, "migrate-user.db");
         DatabaseInitializer.EnsureUserDatabase(db.BundledPath, userDb);
         var factory = new SqliteConnectionFactory(userDb);
-        var id = new SqliteProjectRepository(factory).SaveProject("Мій проєкт", "{}", "Київ", 1, 2);
+        var id = new SqliteProjectRepository(factory).SaveProject("My project", "{}", "Kyiv", 1, 2);
         new SqliteCatalogRepository(factory).UpdateEnergyCarrier("natural_gas", 12.34, 0.2);
 
         // Ship a "newer" catalogue.
@@ -197,7 +197,7 @@ public class RecommendationTests(CatalogFixture db) : IClassFixture<CatalogFixtu
     [Fact]
     public void Recommender_ReturnsSizedUnitsOrderedByCost()
     {
-        var climate = db.Catalog.GetClimateLocations().Single(c => c.City == "Київ");
+        var climate = db.Catalog.GetClimateLocations().Single(c => c.CityEn == "Kyiv");
         var b = TestData.House(climate, EmitterType.Underfloor);
         var loss = HeatLossCalculator.Calculate(b);
         var demand = EnergyDemandCalculator.Calculate(b, loss);
@@ -224,7 +224,7 @@ public class RecommendationTests(CatalogFixture db) : IClassFixture<CatalogFixtu
     [Fact]
     public void Recommender_HonoursConstraints()
     {
-        var climate = db.Catalog.GetClimateLocations().Single(c => c.City == "Львів");
+        var climate = db.Catalog.GetClimateLocations().Single(c => c.CityEn == "Lviv");
         var b = TestData.House(climate);
         var loss = HeatLossCalculator.Calculate(b);
         var demand = EnergyDemandCalculator.Calculate(b, loss);
@@ -246,7 +246,7 @@ public class RecommendationTests(CatalogFixture db) : IClassFixture<CatalogFixtu
     [Fact]
     public void EnvelopeCheck_UsesZoneRequirements()
     {
-        var climate = db.Catalog.GetClimateLocations().Single(c => c.City == "Київ");
+        var climate = db.Catalog.GetClimateLocations().Single(c => c.CityEn == "Kyiv");
         var items = EnvelopeCheck.Check(TestData.House(climate), db.Catalog.GetEnvelopeRequirements());
         var wall = items.Single(i => i.Element == EnvelopeElement.Wall);
         Assert.Equal(3.3, wall.RequiredResistance);

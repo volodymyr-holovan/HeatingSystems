@@ -1,3 +1,5 @@
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.Core.Models;
 
 /// <summary>Building material with its design thermal conductivity λ.</summary>
@@ -5,12 +7,16 @@ namespace HeatingSystems.Core.Models;
 /// <param name="Density">Density, kg/m³ (informational).</param>
 public sealed record Material(
     int Id,
-    string Name,
+    string NameEn,
+    string NameUk,
     MaterialCategory Category,
     double Conductivity,
     double Density,
     string Source)
 {
+    /// <summary>Name in the current UI language.</summary>
+    public string Name => Localizer.Pick(NameEn, NameUk);
+
     public override string ToString() => Name;
 }
 
@@ -26,8 +32,10 @@ public enum MaterialCategory
 /// <summary>Window or glazed door type.</summary>
 /// <param name="UValue">Overall window thermal transmittance U_w, W/(m²·K).</param>
 /// <param name="GValue">Total solar energy transmittance of glazing, –.</param>
-public sealed record WindowType(int Id, string Name, double UValue, double GValue, string Source)
+public sealed record WindowType(int Id, string NameEn, string NameUk, double UValue, double GValue, string Source)
 {
+    public string Name => Localizer.Pick(NameEn, NameUk);
+
     public override string ToString() => Name;
 }
 
@@ -40,14 +48,18 @@ public sealed record WindowType(int Id, string Name, double UValue, double GValu
 /// <param name="AnnualMeanTemperature">Annual mean outdoor temperature θ_m,e, °C.</param>
 public sealed record ClimateLocation(
     int Id,
-    string City,
-    string Region,
+    string CityEn,
+    string CityUk,
+    string RegionEn,
+    string RegionUk,
     double DesignTemperature,
     int HeatingSeasonDays,
     double HeatingSeasonMeanTemperature,
     double AnnualMeanTemperature,
     string Source)
 {
+    public string City => Localizer.Pick(CityEn, CityUk);
+    public string Region => Localizer.Pick(RegionEn, RegionUk);
     public double HeatingSeasonHours => HeatingSeasonDays * 24.0;
 
     /// <summary>Heating degree-days (K·day) for the given indoor temperature.</summary>
@@ -55,7 +67,7 @@ public sealed record ClimateLocation(
         HeatingSeasonDays * (indoorTemperature - HeatingSeasonMeanTemperature);
 
     /// <summary>
-    /// Temperature zone of Ukraine according to ДБН В.2.6-31:2016 (degree-days at θ_i = 20 °C):
+    /// Temperature zone of Ukraine according to DBN V.2.6-31:2016 (degree-days at θ_i = 20 °C):
     /// zone I — more than 3500 K·day, zone II — up to 3500 K·day.
     /// </summary>
     public int ClimateZone => DegreeDays(20.0) > 3500 ? 1 : 2;
@@ -69,13 +81,17 @@ public sealed record ClimateLocation(
 /// <param name="Co2PerKWh">CO₂ emission factor, kg/kWh of final energy.</param>
 public sealed record EnergyCarrier(
     string Code,
-    string Name,
-    string Unit,
+    string NameEn,
+    string NameUk,
+    string UnitEn,
+    string UnitUk,
     double EnergyPerUnit,
     double PricePerUnit,
     double Co2PerKWh,
     string Source)
 {
+    public string Name => Localizer.Pick(NameEn, NameUk);
+    public string Unit => Localizer.Pick(UnitEn, UnitUk);
     public double PricePerKWh => EnergyPerUnit > 0 ? PricePerUnit / EnergyPerUnit : 0;
 
     public override string ToString() => Name;
@@ -89,13 +105,18 @@ public sealed record EnergyCarrier(
 /// </param>
 public sealed record HeatingTechnology(
     string Code,
-    string Name,
+    string NameEn,
+    string NameUk,
     string CarrierCode,
     double SeasonalEfficiency,
     double LowTemperatureBonus,
-    string Description,
+    string DescriptionEn,
+    string DescriptionUk,
     string Source)
 {
+    public string Name => Localizer.Pick(NameEn, NameUk);
+    public string Description => Localizer.Pick(DescriptionEn, DescriptionUk);
+
     public double EfficiencyAt(double designFlowTemperature)
     {
         if (LowTemperatureBonus <= 0) return SeasonalEfficiency;

@@ -5,11 +5,13 @@ using HeatingSystems.Core.Abstractions;
 using HeatingSystems.Core.Calculations;
 using HeatingSystems.Core.Models;
 
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.App.ViewModels;
 
 public sealed record CopPoint(string Condition, double Cop, double MaxOutputKw);
 
-/// <summary>Searchable heat pump catalogue (page "Каталог").</summary>
+/// <summary>Searchable heat pump catalogue (page "Catalogue").</summary>
 public sealed partial class CatalogViewModel : PageViewModel
 {
     private const int PageSize = 200;
@@ -17,7 +19,7 @@ public sealed partial class CatalogViewModel : PageViewModel
     private bool _loaded;
 
     public CatalogViewModel(ICatalogRepository catalog)
-        : base("Каталог", "\uE8F1", "Сертифіковані теплові насоси Heat Pump KEYMARK")
+        : base("page.catalog", "\uE8F1", "page.catalog.subtitle")
     {
         _catalog = catalog;
         Sort = SortOptions[0];
@@ -29,11 +31,11 @@ public sealed partial class CatalogViewModel : PageViewModel
     public IReadOnlyList<Option<CompressorControl?>> ControlOptions => DisplayNames.Controls;
     public IReadOnlyList<Option<HeatPumpSortOrder>> SortOptions { get; } = new Option<HeatPumpSortOrder>[]
     {
-        new(HeatPumpSortOrder.Manufacturer, "За виробником"),
-        new(HeatPumpSortOrder.ScopDescending, "За SCOP (спадання)"),
-        new(HeatPumpSortOrder.PowerAscending, "За потужністю (зростання)"),
-        new(HeatPumpSortOrder.PowerDescending, "За потужністю (спадання)"),
-        new(HeatPumpSortOrder.NoiseAscending, "За шумом (тихіші спочатку)"),
+        new(HeatPumpSortOrder.Manufacturer, "sort.manufacturer"),
+        new(HeatPumpSortOrder.ScopDescending, "sort.scop"),
+        new(HeatPumpSortOrder.PowerAscending, "sort.powerAsc"),
+        new(HeatPumpSortOrder.PowerDescending, "sort.powerDesc"),
+        new(HeatPumpSortOrder.NoiseAscending, "sort.noise"),
     };
 
     public ObservableCollection<string> Manufacturers { get; } = new();
@@ -58,7 +60,7 @@ public sealed partial class CatalogViewModel : PageViewModel
     [ObservableProperty] private double _modelScop;
 
     public int PageCount => Math.Max(1, (TotalCount + PageSize - 1) / PageSize);
-    public string PageText => $"Сторінка {PageIndex + 1} з {PageCount} · знайдено {TotalCount:N0}";
+    public string PageText => Localizer.F("catalog.pageText", PageIndex + 1, PageCount, TotalCount);
     public string SelectedSource => Selected is { } s ? DisplayNames.Source(s.Source) : "";
     public string SelectedControl => Selected is { } s ? DisplayNames.Control(s.Control) : "";
 
@@ -71,11 +73,23 @@ public sealed partial class CatalogViewModel : PageViewModel
         foreach (var m in _catalog.GetManufacturers()) Manufacturers.Add(m);
         Refrigerants.Clear();
         foreach (var r in _catalog.GetRefrigerants()) Refrigerants.Add(r);
-        var s = _catalog.GetStatistics();
-        Statistics = $"{s.HeatPumpCount:N0} моделей від {s.ManufacturerCount} виробників · медіанний SCOP {s.MedianScop:0.00} · " +
-                     $"повітря–вода {s.BySource.GetValueOrDefault(HeatSource.Air):N0}, ґрунт–вода {s.BySource.GetValueOrDefault(HeatSource.Brine):N0}, " +
-                     $"вода–вода {s.BySource.GetValueOrDefault(HeatSource.Water):N0}";
+        UpdateStatistics();
         Load();
+    }
+
+    private void UpdateStatistics()
+    {
+        var s = _catalog.GetStatistics();
+        Statistics = Localizer.F("catalog.statistics", s.HeatPumpCount, s.ManufacturerCount, s.MedianScop,
+            s.BySource.GetValueOrDefault(HeatSource.Air), s.BySource.GetValueOrDefault(HeatSource.Brine),
+            s.BySource.GetValueOrDefault(HeatSource.Water));
+    }
+
+    public override void RefreshLanguage()
+    {
+        if (_loaded) UpdateStatistics();
+        OnSelectedChanged(Selected);
+        base.RefreshLanguage();
     }
 
     [RelayCommand]
@@ -155,7 +169,7 @@ public sealed partial class CatalogViewModel : PageViewModel
             var op = HeatPumpSimulator.OperatingPoint(value, t, flow);
             if (!op.IsAvailable) continue;
             var src = value.Source == HeatSource.Air ? $"{t:0}" : $"{HeatPumpSimulator.SourceTemperature(value.Source, t):0}";
-            var label = value.Source == HeatSource.Air ? $"{outdoor}{src}/W{flow:0}" : $"{outdoor}{src}/W{flow:0}, зовн. {t:0} °C";
+            var label = value.Source == HeatSource.Air ? $"{outdoor}{src}/W{flow:0}" : Localizer.F("catalog.copPointOutdoor", $"{outdoor}{src}/W{flow:0}", t);
             CopPoints.Add(new CopPoint(label, op.Cop, op.MaxThermalPower / 1000));
         }
     }

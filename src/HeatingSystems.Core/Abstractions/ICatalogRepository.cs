@@ -72,3 +72,10 @@ public interface IProjectRepository
     string? LoadProjectPayload(int id);
     void DeleteProject(int id);
 }
+
+/// <summary>Simple persistent key/value settings.</summary>
+public interface ISettingsRepository
+{
+    string? Get(string key);
+    void Set(string key, string value);
+}

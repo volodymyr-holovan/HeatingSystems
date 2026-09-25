@@ -1,4 +1,4 @@
--- HeatingSystems catalogue database (SQLite 3).
+-- HeatingSystems catalogue database (SQLite 3). Reference data is bilingual (English / Ukrainian).
 -- Build: python tools/build_catalog.py  →  database/heating_catalog.db
 PRAGMA foreign_keys = ON;
 
@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS meta (
 -- ---------------------------------------------------------------- reference data
 CREATE TABLE IF NOT EXISTS materials (
     id           INTEGER PRIMARY KEY,
-    name         TEXT    NOT NULL UNIQUE,
+    name_en      TEXT    NOT NULL UNIQUE,
+    name_uk      TEXT    NOT NULL,
     category     INTEGER NOT NULL CHECK (category BETWEEN 1 AND 5), -- 1 masonry, 2 concrete, 3 timber, 4 insulation, 5 finish
     conductivity REAL    NOT NULL CHECK (conductivity > 0),        -- λ, W/(m·K)
     density      REAL    NOT NULL CHECK (density > 0),             -- kg/m³
@@ -19,7 +20,8 @@ CREATE TABLE IF NOT EXISTS materials (
 
 CREATE TABLE IF NOT EXISTS window_types (
     id      INTEGER PRIMARY KEY,
-    name    TEXT NOT NULL UNIQUE,
+    name_en TEXT NOT NULL UNIQUE,
+    name_uk TEXT NOT NULL,
     u_value REAL NOT NULL CHECK (u_value > 0),                -- U_w, W/(m²·K)
     g_value REAL NOT NULL CHECK (g_value BETWEEN 0 AND 1),
     source  TEXT NOT NULL
@@ -27,8 +29,10 @@ CREATE TABLE IF NOT EXISTS window_types (
 
 CREATE TABLE IF NOT EXISTS climate_locations (
     id                       INTEGER PRIMARY KEY,
-    city                     TEXT    NOT NULL UNIQUE,
-    region                   TEXT    NOT NULL,
+    city_en                  TEXT    NOT NULL UNIQUE,
+    city_uk                  TEXT    NOT NULL,
+    region_en                TEXT    NOT NULL,
+    region_uk                TEXT    NOT NULL,
     design_temperature       REAL    NOT NULL,                -- θ_e, °C (coldest five-day period)
     heating_days             INTEGER NOT NULL CHECK (heating_days BETWEEN 1 AND 366),
     heating_mean_temperature REAL    NOT NULL,                -- °C
@@ -38,8 +42,10 @@ CREATE TABLE IF NOT EXISTS climate_locations (
 
 CREATE TABLE IF NOT EXISTS energy_carriers (
     code            TEXT PRIMARY KEY,
-    name            TEXT NOT NULL,
-    unit            TEXT NOT NULL,
+    name_en         TEXT NOT NULL,
+    name_uk         TEXT NOT NULL,
+    unit_en         TEXT NOT NULL,
+    unit_uk         TEXT NOT NULL,
     energy_per_unit REAL NOT NULL CHECK (energy_per_unit > 0), -- kWh per unit
     price_per_unit  REAL NOT NULL CHECK (price_per_unit >= 0), -- UAH per unit
     co2_per_kwh     REAL NOT NULL CHECK (co2_per_kwh >= 0),    -- kg CO₂ per kWh final energy
@@ -49,11 +55,13 @@ CREATE TABLE IF NOT EXISTS energy_carriers (
 
 CREATE TABLE IF NOT EXISTS heating_technologies (
     code                  TEXT PRIMARY KEY,
-    name                  TEXT NOT NULL,
+    name_en               TEXT NOT NULL,
+    name_uk               TEXT NOT NULL,
     carrier_code          TEXT NOT NULL REFERENCES energy_carriers (code),
     seasonal_efficiency   REAL NOT NULL CHECK (seasonal_efficiency > 0),
     low_temperature_bonus REAL NOT NULL DEFAULT 0,
-    description           TEXT NOT NULL,
+    description_en        TEXT NOT NULL,
+    description_uk        TEXT NOT NULL,
     source                TEXT NOT NULL
 );
 
@@ -114,6 +122,11 @@ FROM heat_pumps hp
 JOIN manufacturers m ON m.id = hp.manufacturer_id;
 
 -- ---------------------------------------------------------------- user data
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS projects (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,
     name             TEXT NOT NULL,

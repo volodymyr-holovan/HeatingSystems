@@ -1,4 +1,5 @@
 <Window x:Class="HeatingSystems.App.Views.MainWindow"
+             xmlns:l="clr-namespace:HeatingSystems.App.Localization"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:HeatingSystems.App.ViewModels"
@@ -41,14 +42,19 @@
                         <TextBlock Style="{StaticResource Icon}" Text="&#xE9CA;" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
                     </Border>
                     <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="Системи опалення" Foreground="White" FontSize="15" FontWeight="SemiBold" />
-                        <TextBlock Text="підбір та розрахунок" Foreground="{StaticResource SidebarTextBrush}" FontSize="11" />
+                        <TextBlock Text="{l:Tr app.title}" Foreground="White" FontSize="15" FontWeight="SemiBold" />
+                        <TextBlock Text="{l:Tr app.subtitle}" Foreground="{StaticResource SidebarTextBrush}" FontSize="11" />
                     </StackPanel>
                 </StackPanel>
 
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="22,4,16,0">
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE774;" Foreground="{StaticResource SidebarTextBrush}" Margin="0,0,8,0" />
+                    <ComboBox Width="150" ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" DisplayMemberPath="Name"
+                              AutomationProperties.Name="Language" />
+                </StackPanel>
                 <TextBlock DockPanel.Dock="Bottom" Margin="22,12,16,18" FontSize="11" TextWrapping="Wrap"
                            Foreground="{StaticResource SidebarTextBrush}" Opacity="0.8"
-                           Text="F5 — розрахувати · Ctrl+S — зберегти · Ctrl+P — звіт" />
+                           Text="{l:Tr app.shortcuts}" />
 
                 <ListBox ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}"
                          Background="Transparent" BorderThickness="0"
@@ -78,31 +84,31 @@
             <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="24,14">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Проєкт:" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,0,8,0" />
+                        <TextBlock Text="{l:Tr toolbar.project}" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,0,8,0" />
                         <TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}" Width="220" Margin="0,0,8,0" />
-                        <Button Command="{Binding NewProjectCommand}" ToolTip="Новий проєкт (Ctrl+N)">
+                        <Button Command="{Binding NewProjectCommand}" ToolTip="{l:Tr toolbar.new.tip}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{StaticResource Icon}" Text="&#xE710;" FontSize="13" Margin="0,0,6,0" />
-                                <TextBlock Text="Новий" />
+                                <TextBlock Text="{l:Tr toolbar.new}" />
                             </StackPanel>
                         </Button>
-                        <Button Command="{Binding SaveProjectCommand}" ToolTip="Зберегти проєкт у базі даних (Ctrl+S)">
+                        <Button Command="{Binding SaveProjectCommand}" ToolTip="{l:Tr toolbar.save.tip}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{StaticResource Icon}" Text="&#xE74E;" FontSize="13" Margin="0,0,6,0" />
-                                <TextBlock Text="Зберегти" />
+                                <TextBlock Text="{l:Tr toolbar.save}" />
                             </StackPanel>
                         </Button>
-                        <Button Command="{Binding SaveProjectAsCommand}" Content="Зберегти як новий" ToolTip="Зберегти копію проєкту" />
-                        <Button Command="{Binding ExportReportCommand}" ToolTip="Експортувати звіт у HTML (Ctrl+P)">
+                        <Button Command="{Binding SaveProjectAsCommand}" Content="{l:Tr toolbar.saveAs}" ToolTip="{l:Tr toolbar.saveAs.tip}" />
+                        <Button Command="{Binding ExportReportCommand}" ToolTip="{l:Tr toolbar.report.tip}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{StaticResource Icon}" Text="&#xE749;" FontSize="13" Margin="0,0,6,0" />
-                                <TextBlock Text="Звіт" />
+                                <TextBlock Text="{l:Tr toolbar.report}" />
                             </StackPanel>
                         </Button>
-                        <Button Style="{StaticResource PrimaryButton}" Command="{Binding CalculateCommand}" ToolTip="Виконати розрахунок (F5)" Margin="8,0,0,0">
+                        <Button Style="{StaticResource PrimaryButton}" Command="{Binding CalculateCommand}" ToolTip="{l:Tr toolbar.calculate.tip}" Margin="8,0,0,0">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{StaticResource Icon}" Text="&#xE768;" FontSize="13" Margin="0,0,6,0" Foreground="White" />
-                                <TextBlock Text="Розрахувати" />
+                                <TextBlock Text="{l:Tr toolbar.calculate}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>

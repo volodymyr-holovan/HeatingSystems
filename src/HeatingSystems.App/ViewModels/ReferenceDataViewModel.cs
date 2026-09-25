@@ -5,6 +5,8 @@ using HeatingSystems.App.Services;
 using HeatingSystems.Core.Abstractions;
 using HeatingSystems.Core.Models;
 
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.App.ViewModels;
 
 /// <summary>Editable tariff row.</summary>
@@ -35,14 +37,14 @@ public sealed record ClimateRow(string City, string Region, double DesignTempera
 
 public sealed record MaterialRow(string Name, string Category, double Conductivity, double Density, string Source);
 
-/// <summary>Reference data: tariffs, climate, materials (page "Довідники").</summary>
+/// <summary>Reference data: tariffs, climate, materials (page "Reference data").</summary>
 public sealed partial class ReferenceDataViewModel : PageViewModel
 {
     private readonly ICatalogRepository _catalog;
     private readonly IDialogService _dialogs;
 
     public ReferenceDataViewModel(ICatalogRepository catalog, IDialogService dialogs)
-        : base("Довідники", "\uE8A5", "Тарифи, клімат, матеріали та джерела даних")
+        : base("page.reference", "\uE8A5", "page.reference.subtitle")
     {
         _catalog = catalog;
         _dialogs = dialogs;
@@ -76,7 +78,7 @@ public sealed partial class ReferenceDataViewModel : PageViewModel
         Technologies.Clear();
         foreach (var t in _catalog.GetHeatingTechnologies()) Technologies.Add(t);
         var s = _catalog.GetStatistics();
-        CatalogSource = $"{s.DataSource}. Імпортовано {s.HeatPumpCount:N0} моделей від {s.ManufacturerCount} виробників.";
+        CatalogSource = Localizer.F("reference.catalogSource", s.DataSource, s.HeatPumpCount, s.ManufacturerCount);
     }
 
     [RelayCommand]
@@ -85,20 +87,26 @@ public sealed partial class ReferenceDataViewModel : PageViewModel
         var changed = Carriers.Where(c => c.IsModified).ToList();
         if (changed.Count == 0)
         {
-            _dialogs.ShowInfo("Змін у тарифах немає.");
+            _dialogs.ShowInfo(Localizer.T("reference.noChanges"));
             return;
         }
         if (changed.Any(c => c.Price < 0 || c.Co2 < 0))
         {
-            _dialogs.ShowError("Ціна та коефіцієнт CO₂ не можуть бути від'ємними.");
+            _dialogs.ShowError(Localizer.T("reference.negative"));
             return;
         }
         foreach (var c in changed) _catalog.UpdateEnergyCarrier(c.Code, c.Price, c.Co2);
         Reload();
         TariffsChanged?.Invoke(this, EventArgs.Empty);
-        _dialogs.ShowInfo($"Збережено тарифів: {changed.Count}.");
+        _dialogs.ShowInfo(Localizer.F("reference.saved", changed.Count));
     }
 
     [RelayCommand]
     private void DiscardTariffs() => Reload();
+
+    public override void RefreshLanguage()
+    {
+        Reload();
+        base.RefreshLanguage();
+    }
 }

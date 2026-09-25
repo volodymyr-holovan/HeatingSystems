@@ -1,30 +1,49 @@
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using HeatingSystems.Core.Calculations;
+using HeatingSystems.Core.Localization;
 using HeatingSystems.Core.Models;
 using HeatingSystems.Core.Projects;
 
 namespace HeatingSystems.App.ViewModels;
 
-/// <summary>Input form of the building (page "Будівля").</summary>
+/// <summary>Input form of the building (page "Building").</summary>
 public sealed partial class BuildingViewModel : PageViewModel
 {
     private readonly ReferenceCache _reference;
 
     public BuildingViewModel(ReferenceCache reference)
-        : base("Будівля", "\uE80F", "Вихідні дані для розрахунку тепловтрат")
+        : base("page.building", "\uE80F", "page.building.subtitle")
     {
         _reference = reference;
-        StructuralMaterials = reference.Materials.Where(m => m.Category != MaterialCategory.Insulation).ToList();
-        InsulationMaterials = reference.Materials.Where(m => m.Category == MaterialCategory.Insulation).ToList();
+        BuildLists();
         ResetToDefaults();
     }
 
-    public IReadOnlyList<ClimateLocation> Climates => _reference.Climates;
-    public IReadOnlyList<Material> AllMaterials => _reference.Materials;
-    public IReadOnlyList<Material> StructuralMaterials { get; }
-    public IReadOnlyList<Material> InsulationMaterials { get; }
-    public IReadOnlyList<WindowType> WindowTypes => _reference.Windows;
+    // New list instances make combo boxes regenerate their items, so names follow the UI language.
+    public IReadOnlyList<ClimateLocation> Climates { get; private set; } = Array.Empty<ClimateLocation>();
+    public IReadOnlyList<Material> StructuralMaterials { get; private set; } = Array.Empty<Material>();
+    public IReadOnlyList<Material> InsulationMaterials { get; private set; } = Array.Empty<Material>();
+    public IReadOnlyList<WindowType> WindowTypes { get; private set; } = Array.Empty<WindowType>();
+
+    private void BuildLists()
+    {
+        Climates = _reference.Climates.OrderBy(c => c.City, StringComparer.CurrentCulture).ToList();
+        StructuralMaterials = _reference.Materials.Where(m => m.Category != MaterialCategory.Insulation).ToList();
+        InsulationMaterials = _reference.Materials.Where(m => m.Category == MaterialCategory.Insulation).ToList();
+        WindowTypes = _reference.Windows.ToList();
+    }
+
+    public override void RefreshLanguage()
+    {
+        // Keep the selections: the lists contain the same objects.
+        var (climate, wall, wallIns, roof, roofIns, floor, floorIns, window) =
+            (SelectedClimate, WallMaterial, WallInsulation, RoofMaterial, RoofInsulation, FloorMaterial, FloorInsulation, WindowType);
+        BuildLists();
+        base.RefreshLanguage();
+        (SelectedClimate, WallMaterial, WallInsulation, RoofMaterial, RoofInsulation, FloorMaterial, FloorInsulation, WindowType) =
+            (climate, wall, wallIns, roof, roofIns, floor, floorIns, window);
+    }
     public IReadOnlyList<Option<RoofType>> RoofTypes => DisplayNames.RoofTypes;
     public IReadOnlyList<Option<FloorType>> FloorTypes => DisplayNames.FloorTypes;
     public IReadOnlyList<Option<EmitterType>> Emitters => DisplayNames.Emitters;
@@ -109,18 +128,18 @@ public sealed partial class BuildingViewModel : PageViewModel
     public double DesignTemperature => SelectedClimate?.DesignTemperature ?? 0;
 
     public string ClimateSummary => SelectedClimate is { } c
-        ? $"θe = {c.DesignTemperature:0} °C · опалювальний період {c.HeatingSeasonDays} діб, θср = {c.HeatingSeasonMeanTemperature:0.0} °C · " +
-          $"ГДОП = {c.DegreeDays(IndoorTemperature):N0} К·діб · зона {c.ClimateZone}"
-        : "Оберіть місто";
+        ? Localizer.F("building.climateSummary", c.DesignTemperature, c.HeatingSeasonDays, c.HeatingSeasonMeanTemperature,
+            c.DegreeDays(IndoorTemperature), c.ClimateZone)
+        : Localizer.T("validation.city");
 
     /// <summary>Validation messages of the current input (empty when valid).</summary>
     public IReadOnlyList<string> ValidationErrors
     {
         get
         {
-            if (SelectedClimate is null) return new[] { "Оберіть місто." };
+            if (SelectedClimate is null) return new[] { Localizer.T("validation.city") };
             var errors = new List<string>();
-            if (WallMaterial is null || RoofMaterial is null || FloorMaterial is null) errors.Add("Оберіть матеріали конструкцій.");
+            if (WallMaterial is null || RoofMaterial is null || FloorMaterial is null) errors.Add(Localizer.T("validation.materials"));
             if (errors.Count == 0) errors.AddRange(ToBuildingInput().Validate());
             return errors;
         }
@@ -152,7 +171,7 @@ public sealed partial class BuildingViewModel : PageViewModel
 
     public BuildingInput ToBuildingInput()
     {
-        var climate = SelectedClimate ?? throw new InvalidOperationException("Оберіть місто.");
+        var climate = SelectedClimate ?? throw new InvalidOperationException(Localizer.T("validation.city"));
         return new BuildingInput
         {
             Climate = climate,
@@ -188,36 +207,40 @@ public sealed partial class BuildingViewModel : PageViewModel
         };
     }
 
+    // Reference data ids of the default house (database/seed_reference.sql).
+    private const int KyivId = 1, AeratedConcreteD400 = 5, StoneWool = 17, ReinforcedConcrete = 9, GlassWool = 18,
+        GravelConcrete = 10, ExtrudedPolystyrene = 16, PvcLowEWindow = 5;
+
     /// <summary>Typical detached house (120 m², aerated concrete with mineral wool, Kyiv).</summary>
     public void ResetToDefaults()
     {
-        Material? Find(string prefix) => _reference.Materials.FirstOrDefault(m => m.Name.StartsWith(prefix, StringComparison.Ordinal));
+        Material? Find(int id) => _reference.MaterialById.GetValueOrDefault(id);
 
-        SelectedClimate = _reference.Climates.FirstOrDefault(c => c.City == "Київ") ?? _reference.Climates.FirstOrDefault();
+        SelectedClimate = _reference.ClimateById.GetValueOrDefault(KyivId) ?? _reference.Climates.FirstOrDefault();
         IndoorTemperature = 20;
         HeatedFloorArea = 120;
         CeilingHeight = 2.7;
         ExternalWallArea = 150;
-        WallMaterial = Find("Газобетон D400") ?? StructuralMaterials.FirstOrDefault();
+        WallMaterial = Find(AeratedConcreteD400) ?? StructuralMaterials.FirstOrDefault();
         WallThicknessMm = 375;
-        WallInsulation = Find("Мінеральна вата (кам") ?? InsulationMaterials.FirstOrDefault();
+        WallInsulation = Find(StoneWool) ?? InsulationMaterials.FirstOrDefault();
         WallInsulationMm = 100;
-        WindowType = _reference.Windows.FirstOrDefault(w => w.Id == 5) ?? _reference.Windows.FirstOrDefault();
+        WindowType = _reference.WindowById.GetValueOrDefault(PvcLowEWindow) ?? _reference.Windows.FirstOrDefault();
         WindowArea = 22;
         DoorArea = 2.2;
         DoorUValue = 1.8;
         RoofType = DisplayNames.RoofTypes[0];
         RoofArea = 75;
-        RoofMaterial = Find("Залізобетон") ?? StructuralMaterials.FirstOrDefault();
+        RoofMaterial = Find(ReinforcedConcrete) ?? StructuralMaterials.FirstOrDefault();
         RoofThicknessMm = 200;
-        RoofInsulation = Find("Мінеральна вата (скло") ?? InsulationMaterials.FirstOrDefault();
+        RoofInsulation = Find(GlassWool) ?? InsulationMaterials.FirstOrDefault();
         RoofInsulationMm = 250;
         FloorType = DisplayNames.FloorTypes[0];
         FloorArea = 75;
         FloorPerimeter = 35;
-        FloorMaterial = Find("Бетон на гравії") ?? StructuralMaterials.FirstOrDefault();
+        FloorMaterial = Find(GravelConcrete) ?? StructuralMaterials.FirstOrDefault();
         FloorThicknessMm = 100;
-        FloorInsulation = Find("Екструдований") ?? InsulationMaterials.FirstOrDefault();
+        FloorInsulation = Find(ExtrudedPolystyrene) ?? InsulationMaterials.FirstOrDefault();
         FloorInsulationMm = 100;
         ThermalBridgeSurcharge = 0.05;
         MechanicalVentilation = false;

@@ -4,16 +4,18 @@ using CommunityToolkit.Mvvm.Input;
 using HeatingSystems.App.Services;
 using HeatingSystems.Core.Abstractions;
 
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.App.ViewModels;
 
-/// <summary>Saved projects (page "Проєкти").</summary>
+/// <summary>Saved projects (page "Projects").</summary>
 public sealed partial class ProjectsViewModel : PageViewModel
 {
     private readonly IProjectRepository _projects;
     private readonly IDialogService _dialogs;
 
     public ProjectsViewModel(IProjectRepository projects, IDialogService dialogs)
-        : base("Проєкти", "\uE8B7", "Збережені розрахунки")
+        : base("page.projects", "\uE8B7", "page.projects.subtitle")
     {
         _projects = projects;
         _dialogs = dialogs;
@@ -50,7 +52,7 @@ public sealed partial class ProjectsViewModel : PageViewModel
     private void Delete()
     {
         if (Selected is not { } p) return;
-        if (!_dialogs.Confirm($"Видалити проєкт «{p.Name}»?")) return;
+        if (!_dialogs.Confirm(Localizer.F("projects.confirmDelete", p.Name))) return;
         _projects.DeleteProject(p.Id);
         Refresh();
     }

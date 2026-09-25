@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
+using HeatingSystems.Core.Localization;
+
 namespace HeatingSystems.App.Converters;
 
 /// <summary>
@@ -29,14 +31,14 @@ public sealed class NumberConverter : IValueConverter
         if (text.Length == 0)
         {
             if (Nullable.GetUnderlyingType(targetType) is not null) return null!;
-            throw new FormatException("Введіть число.");
+            throw new FormatException(Localizer.T("input.enterNumber"));
         }
         if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) || !double.IsFinite(number))
-            throw new FormatException("Некоректне число.");
+            throw new FormatException(Localizer.T("input.invalidNumber"));
         if (target == typeof(int))
         {
             if (number != Math.Floor(number) || number is < int.MinValue or > int.MaxValue)
-                throw new FormatException("Введіть ціле число.");
+                throw new FormatException(Localizer.T("input.enterInteger"));
             return (int)number;
         }
         return number;
