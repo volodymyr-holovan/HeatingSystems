@@ -1,0 +1,98 @@
+<UserControl x:Class="HeatingSystems.App.Views.ReferenceDataView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <TabControl Margin="24,18,24,24" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" Padding="14">
+        <TabItem Header="Тарифи та викиди">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Background="{StaticResource AccentLightBrush}" BorderBrush="{StaticResource AccentLightBrush}" Padding="14,10">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Ціни є орієнтовними. Змініть їх відповідно до актуальних тарифів вашого регіону — стовпці «Ціна» та «CO₂» редагуються (подвійне клацання). Після збереження розрахунок оновиться автоматично." />
+                </Border>
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                    <Button Content="Скасувати зміни" Command="{Binding DiscardTariffsCommand}" />
+                    <Button Style="{StaticResource PrimaryButton}" Content="Зберегти тарифи" Command="{Binding SaveTariffsCommand}" />
+                </StackPanel>
+                <DataGrid ItemsSource="{Binding Carriers}" IsReadOnly="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Енергоносій" Binding="{Binding Name, Mode=OneWay}" IsReadOnly="True" Width="1.4*" />
+                        <DataGridTextColumn Header="Одиниця" Binding="{Binding Unit, Mode=OneWay}" IsReadOnly="True" Width="80" />
+                        <DataGridTextColumn Header="кВт·год / од." Binding="{Binding EnergyPerUnit, Mode=OneWay, StringFormat={}{0:N2}}" IsReadOnly="True" Width="100" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="Ціна, грн / од." Binding="{Binding Price, Converter={StaticResource Num}, ValidatesOnExceptions=True}" Width="110" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="грн / кВт·год" Binding="{Binding PricePerKWh, Mode=OneWay, StringFormat={}{0:N2}}" IsReadOnly="True" Width="100" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="CO₂, кг/кВт·год" Binding="{Binding Co2, Converter={StaticResource Num}, ValidatesOnExceptions=True}" Width="115" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="Джерело" Binding="{Binding Source, Mode=OneWay}" IsReadOnly="True" Width="2*" ElementStyle="{StaticResource WrapCell}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </TabItem>
+
+        <TabItem Header="Клімат">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource Caption}" Margin="0,0,0,10"
+                           Text="Довідкові кліматичні параметри обласних центрів (ДСТУ-Н Б В.1.1-27:2010). Температурна зона визначається за градусо-добами при θi = 20 °C (ДБН В.2.6-31:2016). Перед використанням у проєктній документації звірте значення з чинним нормативом." />
+                <DataGrid ItemsSource="{Binding Climates}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Місто" Binding="{Binding City}" Width="1.2*" />
+                        <DataGridTextColumn Header="Область" Binding="{Binding Region}" Width="1.4*" />
+                        <DataGridTextColumn Header="θe, °C" Binding="{Binding DesignTemperature, StringFormat={}{0:N0}}" Width="70" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="Діб" Binding="{Binding Days}" Width="60" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="θср.оп, °C" Binding="{Binding MeanTemperature, StringFormat={}{0:N1}}" Width="85" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="θср.річ, °C" Binding="{Binding AnnualMean, StringFormat={}{0:N1}}" Width="85" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="ГДОП, К·діб" Binding="{Binding DegreeDays, StringFormat={}{0:N0}}" Width="95" ElementStyle="{StaticResource NumericCell}" />
+                        <DataGridTextColumn Header="Зона" Binding="{Binding Zone}" Width="55" ElementStyle="{StaticResource NumericCell}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </TabItem>
+
+        <TabItem Header="Матеріали">
+            <DataGrid ItemsSource="{Binding Materials}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Матеріал" Binding="{Binding Name}" Width="2*" />
+                    <DataGridTextColumn Header="Категорія" Binding="{Binding Category}" Width="110" />
+                    <DataGridTextColumn Header="λ, Вт/(м·К)" Binding="{Binding Conductivity, StringFormat={}{0:N3}}" Width="95" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="ρ, кг/м³" Binding="{Binding Density, StringFormat={}{0:N0}}" Width="80" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="Джерело" Binding="{Binding Source}" Width="2*" ElementStyle="{StaticResource WrapCell}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </TabItem>
+
+        <TabItem Header="Вікна">
+            <DataGrid ItemsSource="{Binding Windows}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Тип вікна" Binding="{Binding Name}" Width="2*" />
+                    <DataGridTextColumn Header="Uw, Вт/(м²·К)" Binding="{Binding UValue, StringFormat={}{0:N2}}" Width="110" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="g" Binding="{Binding GValue, StringFormat={}{0:N2}}" Width="60" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="Джерело" Binding="{Binding Source}" Width="1.5*" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </TabItem>
+
+        <TabItem Header="Генератори теплоти">
+            <DataGrid ItemsSource="{Binding Technologies}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Технологія" Binding="{Binding Name}" Width="1.6*" />
+                    <DataGridTextColumn Header="Паливо" Binding="{Binding CarrierCode}" Width="110" />
+                    <DataGridTextColumn Header="Сезонний ККД" Binding="{Binding SeasonalEfficiency, StringFormat={}{0:P0}}" Width="105" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="+ низькотемп." Binding="{Binding LowTemperatureBonus, StringFormat={}{0:P0}}" Width="100" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="Опис" Binding="{Binding Description}" Width="2*" ElementStyle="{StaticResource WrapCell}" />
+                    <DataGridTextColumn Header="Джерело" Binding="{Binding Source}" Width="1.4*" ElementStyle="{StaticResource WrapCell}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </TabItem>
+
+        <TabItem Header="Джерела даних">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Каталог теплових насосів" />
+                    <TextBlock Text="{Binding CatalogSource}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,16"
+                               Text="Дані — результати сертифікаційних випробувань Heat Pump KEYMARK (EN 14511, EN 14825), зібрані та оброблені проєктом hplib (Forschungszentrum Jülich / RE-Lab, ліцензія MIT). Для кожної моделі наявні сертифіковані SCOP, ηs, потужності, рівні звукової потужності та коефіцієнти регресійної моделі COP і електричної потужності. Точність моделі перевіряється автоматичним тестом: відтворений за EN 14825 SCOP збігається з сертифікованим (медіанна похибка ≈ 4 %)." />
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Методика розрахунку" />
+                    <TextBlock TextWrapping="Wrap"
+                               Text="• Коефіцієнти теплопередачі — EN ISO 6946; підлога по ґрунту — EN ISO 13370 (зокрема періодичний теплообмін).&#x0a;• Розрахункове теплове навантаження — EN 12831 (спрощений облік теплових мостів ΔU, інфільтрація за n50).&#x0a;• Річна потреба — bin-метод за розподілом годин зовнішньої температури, коефіцієнт використання теплонадходжень — EN ISO 13790.&#x0a;• Тепловий насос — модель hplib, опалювальний графік за характеристикою приладів (EN 442), часткове навантаження та циклування — EN 14825 (Cd = 0,9), ТЕН нижче межі роботи.&#x0a;• Гаряче водопостачання — Q = N·V·365·c·Δθ·(1 + f втрат)." />
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+</UserControl>

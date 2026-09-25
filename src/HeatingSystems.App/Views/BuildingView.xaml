@@ -1,0 +1,287 @@
+<UserControl x:Class="HeatingSystems.App.Views.BuildingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24,18,24,24">
+            <!-- Validation banner -->
+            <Border Style="{StaticResource Card}" Background="{StaticResource DangerLightBrush}" BorderBrush="{StaticResource DangerBrush}"
+                    Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <TextBlock Text="Перевірте вихідні дані" FontWeight="SemiBold" Foreground="{StaticResource DangerBrush}" Margin="0,0,0,4" />
+                    <ItemsControl ItemsSource="{Binding ValidationErrors}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding StringFormat='• {0}'}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE753;" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,10" />
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="Клімат та мікроклімат" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Місто (обласний центр)" />
+                            <ComboBox ItemsSource="{Binding Climates}" SelectedItem="{Binding SelectedClimate}" DisplayMemberPath="City" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Внутрішня температура θi" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="°C" />
+                            <TextBox Text="{Binding IndoorTemperature, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{Binding ClimateSummary}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE80F;" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,10" />
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="Геометрія" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Опалювана площа" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м²" />
+                            <TextBox Text="{Binding HeatedFloorArea, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Середня висота приміщень" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м" />
+                            <TextBox Text="{Binding CeilingHeight, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Опалюваний об'єм" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м³" />
+                            <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding HeatedVolume, StringFormat={}{0:N1}}" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                        <Border DockPanel.Dock="Right" Style="{StaticResource Badge}">
+                            <TextBlock Foreground="{StaticResource InfoBrush}" FontWeight="SemiBold" Text="{Binding WallUValue, StringFormat='U = {0:N3} Вт/(м²·К)'}" />
+                        </Border>
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE81E;" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,10" />
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="Зовнішні стіни" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}" ToolTip="Загальна площа зовнішніх стін за зовнішніми розмірами, включно з прорізами">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Площа стін (разом із вікнами)" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м²" />
+                            <TextBox Text="{Binding ExternalWallArea, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Несучий шар" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="мм" />
+                            <TextBox DockPanel.Dock="Right" Width="80" Margin="8,0,0,0" Text="{Binding WallThicknessMm, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                            <ComboBox ItemsSource="{Binding StructuralMaterials}" SelectedItem="{Binding WallMaterial}" DisplayMemberPath="Name" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Утеплювач (0 — без утеплення)" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="мм" />
+                            <TextBox DockPanel.Dock="Right" Width="80" Margin="8,0,0,0" Text="{Binding WallInsulationMm, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                            <ComboBox ItemsSource="{Binding InsulationMaterials}" SelectedItem="{Binding WallInsulation}" DisplayMemberPath="Name" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7F8;" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,10" />
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="Вікна та двері" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Тип вікон" />
+                            <ComboBox ItemsSource="{Binding WindowTypes}" SelectedItem="{Binding WindowType}" DisplayMemberPath="Name" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Площа вікон" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м²" />
+                            <TextBox Text="{Binding WindowArea, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Площа зовнішніх дверей" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м²" />
+                            <TextBox Text="{Binding DoorArea, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="U дверей" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="Вт/(м²·К)" />
+                            <TextBox Text="{Binding DoorUValue, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                        <Border DockPanel.Dock="Right" Style="{StaticResource Badge}">
+                            <TextBlock Foreground="{StaticResource InfoBrush}" FontWeight="SemiBold" Text="{Binding RoofUValue, StringFormat='U = {0:N3} Вт/(м²·К)'}" />
+                        </Border>
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE80F;" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,10" />
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="Покрівля / горищне перекриття" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Тип" />
+                            <ComboBox ItemsSource="{Binding RoofTypes}" SelectedItem="{Binding RoofType}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Площа" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м²" />
+                            <TextBox Text="{Binding RoofArea, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Несучий шар" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="мм" />
+                            <TextBox DockPanel.Dock="Right" Width="80" Margin="8,0,0,0" Text="{Binding RoofThicknessMm, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                            <ComboBox ItemsSource="{Binding StructuralMaterials}" SelectedItem="{Binding RoofMaterial}" DisplayMemberPath="Name" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Утеплювач" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="мм" />
+                            <TextBox DockPanel.Dock="Right" Width="80" Margin="8,0,0,0" Text="{Binding RoofInsulationMm, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                            <ComboBox ItemsSource="{Binding InsulationMaterials}" SelectedItem="{Binding RoofInsulation}" DisplayMemberPath="Name" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                        <Border DockPanel.Dock="Right" Style="{StaticResource Badge}">
+                            <TextBlock Foreground="{StaticResource InfoBrush}" FontWeight="SemiBold" Text="{Binding FloorUValue, StringFormat='U = {0:N3} Вт/(м²·К)'}" />
+                        </Border>
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE81E;" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,10" />
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="Підлога" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Тип" />
+                            <ComboBox ItemsSource="{Binding FloorTypes}" SelectedItem="{Binding FloorType}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Площа" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м²" />
+                            <TextBox Text="{Binding FloorArea, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}" ToolTip="Зовнішній периметр плити, EN ISO 13370">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Периметр (для підлоги по ґрунту)" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="м" />
+                            <TextBox Text="{Binding FloorPerimeter, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Несучий шар" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="мм" />
+                            <TextBox DockPanel.Dock="Right" Width="80" Margin="8,0,0,0" Text="{Binding FloorThicknessMm, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                            <ComboBox ItemsSource="{Binding StructuralMaterials}" SelectedItem="{Binding FloorMaterial}" DisplayMemberPath="Name" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Утеплювач" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="мм" />
+                            <TextBox DockPanel.Dock="Right" Width="80" Margin="8,0,0,0" Text="{Binding FloorInsulationMm, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                            <ComboBox ItemsSource="{Binding InsulationMaterials}" SelectedItem="{Binding FloorInsulation}" DisplayMemberPath="Name" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE9CA;" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,10" />
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="Вентиляція, теплові мости, теплонадходження" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}" ToolTip="EN 12831: житлові кімнати 0,5 год⁻¹">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Мінімальна кратність повітрообміну n" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="год⁻¹" />
+                            <TextBox Text="{Binding AirChangeRate, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}" ToolTip="Нова будівля 1,5–3; стара 5–10">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Герметичність n50 (blower-door)" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="год⁻¹" />
+                            <TextBox Text="{Binding AirTightnessN50, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Захищеність від вітру" />
+                            <ComboBox ItemsSource="{Binding ShieldingOptions}" SelectedItem="{Binding Shielding}" />
+                        </DockPanel>
+                        <CheckBox Content="Механічна вентиляція з рекуперацією теплоти" IsChecked="{Binding MechanicalVentilation}" />
+                        <DockPanel Style="{StaticResource FormRow}" IsEnabled="{Binding MechanicalVentilation}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="ККД рекуператора" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="%" />
+                            <TextBox Text="{Binding HeatRecoveryPercent, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}" ToolTip="EN 12831: 0,05 — ретельно деталізовано, 0,10 — типово, 0,15 — старі будівлі">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Надбавка на теплові мости ΔU" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="Вт/(м²·К)" />
+                            <TextBox Text="{Binding ThermalBridgeSurcharge, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}" ToolTip="Житлові будинки: 3–5 Вт/м² (EN ISO 13790)">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Внутрішні теплонадходження" />
+                            <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="Вт/м²" />
+                            <TextBox Text="{Binding InternalGains, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Теплова інерція" />
+                            <ComboBox ItemsSource="{Binding ThermalMasses}" SelectedItem="{Binding ThermalMass}" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE945;" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,10" />
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="Система опалення та гаряча вода" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FormRow}">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="Опалювальні прилади" />
+                            <ComboBox ItemsSource="{Binding Emitters}" SelectedItem="{Binding Emitter}" />
+                        </DockPanel>
+                        <CheckBox Content="Враховувати гаряче водопостачання" IsChecked="{Binding IncludeHotWater}" />
+                        <StackPanel IsEnabled="{Binding IncludeHotWater}">
+                            <DockPanel Style="{StaticResource FormRow}">
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Кількість мешканців" />
+                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="осіб" />
+                                <TextBox Text="{Binding Occupants, Converter={StaticResource Num0}, ValidatesOnExceptions=True}" />
+                            </DockPanel>
+                            <DockPanel Style="{StaticResource FormRow}">
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Витрата гарячої води" />
+                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="л/(ос·добу)" />
+                                <TextBox Text="{Binding HotWaterLitres, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                            </DockPanel>
+                            <DockPanel Style="{StaticResource FormRow}">
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="Температура гарячої води" />
+                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource Unit}" Text="°C" />
+                                <TextBox Text="{Binding HotWaterTemperature, Converter={StaticResource Num}, ValidatesOnExceptions=True}" />
+                            </DockPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

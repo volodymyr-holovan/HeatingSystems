@@ -1,0 +1,67 @@
+<UserControl x:Class="HeatingSystems.App.Views.ComparisonView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,18,24,24">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding HasResults, Converter={StaticResource InverseBoolToVisibility}}">
+            <TextBlock Style="{StaticResource Icon}" Text="&#xE8EF;" FontSize="48" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" />
+            <TextBlock Text="Порівняння буде доступне після розрахунку" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,0" />
+        </StackPanel>
+
+        <DockPanel Visibility="{Binding HasResults, Converter={StaticResource BoolToVisibility}}">
+            <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Background="{StaticResource AccentLightBrush}" BorderBrush="{StaticResource AccentLightBrush}" Padding="14,10">
+                <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+            </Border>
+            <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Caption}" Margin="0,10,0,0"
+                       Text="Витрати розраховано за тарифами зі сторінки «Довідники» (їх можна змінити). Для теплових насосів наведено найкращу модель кожного типу джерела з підбору; ККД котлів — сезонний, за нижчою теплотою згоряння. Викиди біопалива (пелети, дрова) вважаються кліматично нейтральними." />
+            <DataGrid ItemsSource="{Binding Rows}">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsHeatPump}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource AccentLightBrush}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="#" Binding="{Binding Rank}" Width="40" />
+                    <DataGridTextColumn Header="Система" Binding="{Binding Name}" Width="2*" ElementStyle="{StaticResource WrapCell}" />
+                    <DataGridTextColumn Header="ККД / SPF" Binding="{Binding Efficiency, StringFormat={}{0:N2}}" Width="80" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="Енергія, кВт·год" Binding="{Binding FinalEnergy, StringFormat={}{0:N0}}" Width="110" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTextColumn Header="Паливо на рік" Binding="{Binding Fuel}" Width="130" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTemplateColumn Header="Витрати, грн/рік" Width="*" SortMemberPath="AnnualCost">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="80" />
+                                    </Grid.ColumnDefinitions>
+                                    <ProgressBar Style="{StaticResource Bar}" Value="{Binding CostFraction, Mode=OneWay}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding AnnualCost, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Грн/міс" Binding="{Binding MonthlyCost, StringFormat={}{0:N0}}" Width="75" ElementStyle="{StaticResource NumericCell}" />
+                    <DataGridTemplateColumn Header="CO₂, кг/рік" Width="*" SortMemberPath="AnnualCo2">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="70" />
+                                    </Grid.ColumnDefinitions>
+                                    <ProgressBar Style="{StaticResource Bar}" Foreground="#868E96" Value="{Binding Co2Fraction, Mode=OneWay}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding AnnualCo2, StringFormat={}{0:N0}}" HorizontalAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Примітка" Binding="{Binding Notes}" Width="1.5*" ElementStyle="{StaticResource WrapCell}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+    </Grid>
+</UserControl>

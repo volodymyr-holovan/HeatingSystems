@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    name: Core, data and catalogue (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify catalogue is reproducible from raw data
+        run: python tools/verify_catalog.py
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Test core and data layer
+        run: dotnet test tests/HeatingSystems.Tests/HeatingSystems.Tests.csproj -c Release --logger "console;verbosity=normal"
+
+  windows:
+    name: Full solution incl. WPF UI (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build
+        run: dotnet build HeatingSystems.sln -c Release
+      - name: Test (including UI smoke test)
+        run: dotnet test HeatingSystems.sln -c Release --no-build --logger "console;verbosity=normal"
+      - name: Publish application
+        run: dotnet publish src/HeatingSystems.App/HeatingSystems.App.csproj -c Release -r win-x64 --self-contained false -o publish
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HeatingSystems-win-x64
+          path: publish/
+          if-no-files-found: error

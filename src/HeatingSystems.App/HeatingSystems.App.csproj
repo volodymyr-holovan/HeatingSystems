@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>HeatingSystems.App</RootNamespace>
+    <AssemblyName>HeatingSystems</AssemblyName>
+    <AssemblyTitle>Системи опалення</AssemblyTitle>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeatingSystems.Core\HeatingSystems.Core.csproj" />
+    <ProjectReference Include="..\HeatingSystems.Data\HeatingSystems.Data.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="HeatingSystems.App.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Shipped catalogue; copied to the per-user database on first start. -->
+    <Content Include="..\..\database\heating_catalog.db" Link="heating_catalog.db" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
