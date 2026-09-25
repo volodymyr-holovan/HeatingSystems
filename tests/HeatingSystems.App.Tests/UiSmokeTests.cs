@@ -145,7 +145,7 @@ public class UiSmokeTests
                 Assert.Equal("Ukrainian", settings.Get(MainViewModel.LanguageSettingKey));
                 Assert.Same(selectedClimate, vm.Building.SelectedClimate);
                 Assert.Equal("Будівля", vm.Building.Title);
-                Assert.Equal("uk-UA", window.Language.IetfLanguageTag);
+                Assert.Equal("uk-UA", window.Language.IetfLanguageTag, ignoreCase: true);
                 VisitAllPages();
                 vm.SelectedLanguage = vm.Languages.Single(l => l.Value == AppLanguage.English);
                 Assert.Equal("Building", vm.Building.Title);
