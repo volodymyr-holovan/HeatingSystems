@@ -38,7 +38,31 @@ jobs:
       - name: Test (including UI smoke test)
         run: dotnet test HeatingSystems.sln -c Release --no-build --logger "console;verbosity=normal"
       - name: Publish application
-        run: dotnet publish src/HeatingSystems.App/HeatingSystems.App.csproj -c Release -r win-x64 --self-contained false -o publish
+        # Self-contained single file: runs on any Windows 10/11 x64 PC without installing .NET.
+        run: >
+          dotnet publish src/HeatingSystems.App/HeatingSystems.App.csproj -c Release -r win-x64
+          --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true -o publish
+      - name: Launch published executable
+        shell: pwsh
+        run: |
+          foreach ($f in 'HeatingSystems.exe', 'heating_catalog.db') {
+            if (-not (Test-Path "publish/$f")) { throw "publish/$f is missing" }
+          }
+          $p = Start-Process -FilePath publish/HeatingSystems.exe -PassThru
+          $title = ''
+          for ($i = 0; $i -lt 30 -and -not $p.HasExited; $i++) {
+            Start-Sleep -Seconds 1
+            $p.Refresh()
+            $title = $p.MainWindowTitle
+            if ($title -like '*—*') { break }
+          }
+          if ($p.HasExited) { throw "Application exited with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+          # The main window title is "Системи опалення — <project>"; an error message box has no dash.
+          if ($title -notlike '*—*') { throw "Main window did not appear (window title: '$title')" }
+          if (-not (Test-Path "$env:LOCALAPPDATA/HeatingSystems/heating.db")) { throw "User database was not created" }
+          Write-Host "Started successfully, window title: $title"
       - uses: actions/upload-artifact@v4
         with:
           name: HeatingSystems-win-x64

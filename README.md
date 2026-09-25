@@ -95,7 +95,15 @@ dotnet run   --project src/HeatingSystems.App
 Ядро й тести бази збираються та запускаються й на Linux/macOS:
 `dotnet test tests/HeatingSystems.Tests`.
 
-Готову збірку для Windows GitHub Actions публікує як артефакт `HeatingSystems-win-x64` (workflow **CI**).
+### Запуск без встановлення .NET
+
+1. Відкрийте вкладку **Actions** репозиторію → останній успішний запуск **CI** → розділ **Artifacts**.
+2. Завантажте `HeatingSystems-win-x64` (потрібен вхід у GitHub) і розпакуйте архів у будь-яку папку.
+3. Запустіть `HeatingSystems.exe`. Якщо з'явиться попередження Windows SmartScreen, натисніть
+   «Докладніше» → «Виконати в будь-якому разі» (програма не підписана цифровим підписом).
+
+Збірка самодостатня (.NET 8 уже всередині) і працює на Windows 10/11 x64. Файл `heating_catalog.db` має лежати поруч
+з `.exe`. Проєкти користувача зберігаються в `%LOCALAPPDATA%\HeatingSystems\heating.db`.
 
 Гарячі клавіші: **F5** — розрахувати, **Ctrl+S** — зберегти, **Ctrl+N** — новий проєкт, **Ctrl+P** — звіт.
 
